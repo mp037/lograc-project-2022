@@ -1,6 +1,6 @@
 module Avl where
 
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; z≤n; s≤s)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; z≤n; s≤s; _⊔_) renaming (∣_-_∣ to _-_)
 open import Data.List using (List; []; _∷_; length)
 
 import Relation.Binary.PropositionalEquality as Eq
@@ -33,20 +33,46 @@ data _<∞_ : ℕ∞ → ℕ∞ → Set where
   []<[] : {n m : ℕ}   → n < m → [ n ] <∞ [ m ]
   n<+∞  : {n   : ℕ∞}  →           n   <∞  +∞
 
-max : ℕ → ℕ → ℕ
-max zero b = b
-max (suc a) zero = suc a
-max (suc a) (suc b) = suc (max a b)
 
-data Avl (A : Set) (lower upper : ℕ∞) : Set where
-  empty : (p : lower <∞ upper) → Avl A lower upper
-  node : (n : ℕ)
-            → Avl A lower [ n ]
-            → Avl A [ n ] upper
-            → Avl A lower upper
+data Avl (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element is the height of the tree
+  empty : (p : lower <∞ upper) → Avl A lower upper zero
+  node : {l r : ℕ} → (n : ℕ)
+            → Avl A lower [ n ] l
+            → Avl A [ n ] upper r
+            → (r - l) ≤ 1
+            → Avl A lower upper (1 + (l ⊔ r))
 
-test : Avl ℕ -∞ +∞
-test = node 7 (node 5 (empty -∞<n) (empty ([]<[] (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n))))))))) (empty n<+∞)
+test : Avl ℕ -∞ +∞ 1
+test = node 5 (empty -∞<n) (empty n<+∞) z≤n
+
+test2 : Avl ℕ -∞ +∞ 2
+test2 = node 5 (node 3 (empty -∞<n) (empty ([]<[] (s≤s (s≤s (s≤s (s≤s z≤n)))))) z≤n) 
+               (empty n<+∞) (s≤s z≤n)
+
+test3 : Avl ℕ -∞ +∞ 2
+test3 = node 5 (node 3 (empty -∞<n) (empty ([]<[] (s≤s (s≤s (s≤s (s≤s z≤n)))))) z≤n) 
+               (node 6 (empty ([]<[] (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))) (empty n<+∞) z≤n) z≤n
+
+test4 : Avl ℕ -∞ +∞ 2
+test4 = node 5 (empty -∞<n) 
+               (node 6 (empty ([]<[] (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))) (empty n<+∞) z≤n) (s≤s z≤n)
+
+data _∈_ (n : ℕ) : {lower upper : ℕ∞} {h : ℕ} → Avl ℕ lower upper h → Set where
+  here : ∀ {ll rr hl hr} → {l : Avl ℕ ll [ n ] hl} {r : Avl ℕ [ n ] rr hr} {p : (hr - hl) ≤ 1} → n ∈ node n l r p
+  left : ∀ {ll rr hl hr x} → {l : Avl ℕ ll [ x ] hl} {r : Avl ℕ [ x ] rr hr} {p : (hr - hl) ≤ 1} → n ∈ l → n ∈ node x l r p
+  right : ∀ {ll rr hl hr x} → {l : Avl ℕ ll [ x ] hl} {r : Avl ℕ [ x ] rr hr} {p : (hr - hl) ≤ 1} → n ∈ r → n ∈ node x l r p
+
+3∈test3 : 3 ∈ test3
+3∈test3 = left here
+
+5∈test3 : 5 ∈ test3
+5∈test3 = here
+
+6∈test3 : 6 ∈ test3
+6∈test3 = right here
+
+
+
 
 
   
