@@ -2,9 +2,9 @@ module Avl where
 
 open import Agda.Builtin.Nat using () renaming (_-_ to _-ᴺ_)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; _≤ᵇ_; z≤n; s≤s; _⊔_) renaming (∣_-_∣ to _-_)
-open import Data.Nat.Properties using (≤-trans; ≤-reflexive)
+open import Data.Nat.Properties using (≤-trans; ≤-reflexive; +-∸-assoc; +-comm; m∸n+n≡m; m≤n⇒m⊔n≡n; n≤1+n)
 open import Data.List using (List; []; _∷_; length)
-open import Data.Bool.Base using (T)
+open import Data.Bool.Base using (T; if_then_else_)
 open import Agda.Builtin.Bool public
 open import Data.Maybe
 
@@ -45,6 +45,7 @@ data Avl (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element
             → (r - l) ≤ 1
             → Avl A lower upper ((l ⊔ r) + 1)
 
+
 test : Avl ℕ -∞ +∞ 1
 test = node 5 (empty -∞<n) (empty n<+∞) z≤n
 
@@ -79,14 +80,14 @@ data RightHeavyAvl (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the la
             → Avl A lower [ n ] l
             → Avl A [ n ] upper r
             --→ 1 ≤ r --l < r
-            → l ≡ r - 1 --r - l ≤ 1
+            → r ≡ 1 + l --r - l ≤ 1
             → RightHeavyAvl A lower upper (r + 1)
 
 data LeftHeavyAvl (A : Set) (lower upper : ℕ∞) : ℕ → Set where
   leftheavynode : {l r : ℕ} → (n : ℕ)
             → Avl A lower [ n ] l
             → Avl A [ n ] upper r
-            → r ≡ l - 1
+            → l ≡ 1 + r
             → LeftHeavyAvl A lower upper (l + 1)
 
 
@@ -95,7 +96,7 @@ data AlmostAvlRight (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the l
             → Avl A lower [ n ] l
             → RightHeavyAvl A [ n ] upper r
             --→ 2 ≤ r --l < r
-            → l ≡ r - 2 --r - l ≡ 2
+            → r ≡ 2 + l --r - l ≡ 2
             → AlmostAvlRight A lower upper (r + 1)
 
 
@@ -103,38 +104,50 @@ data AlmostAvlLeft (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the la
   almostleftnode : {l r : ℕ} → (n : ℕ)
             → Avl A lower [ n ] l
             → Avl A [ n ] upper r
-            → r ≡ l - 2
+            → l ≡ 2 + r
             → AlmostAvlLeft A lower upper (l + 1)
 
-{-
-minuszero : (n : ℕ) → n - 0 ≡ n
-minuszero zero = refl
-minuszero (suc n) = refl
 
-treeDepth : ℕ → Maybe ℕ
-treeDepth zero = just zero
-treeDepth (suc zero) = just 1
-treeDepth (suc (suc n)) = nothing
+proof1 : ∀ n → n + 1 -ᴺ 1 ≡ n
+proof1 n = (begin 
+            n + 1 -ᴺ 1 ≡⟨ +-∸-assoc n (s≤s z≤n) ⟩
+            n + (1 -ᴺ 1) ≡⟨ refl ⟩
+            n + 0 ≡⟨ +-comm n 0 ⟩
+            0 + n ≡⟨ refl ⟩
+            n
+            ∎)
 
-isjust : Maybe ℕ → Bool
-isjust (just x) = true
-isjust nothing = false
+proof1rev : (n : ℕ) → 1 ≤ n → n -ᴺ 1 + 1 ≡ n
+proof1rev n p = (begin 
+            n -ᴺ 1 + 1 ≡⟨ m∸n+n≡m p ⟩
+            n
+            ∎)
 
+proof2 : (n : ℕ) → 1 ≤ n → n + 1 -ᴺ 1 ≡ n -ᴺ 1 + 1
+proof2 n p = (begin
+            n + 1 -ᴺ 1 ≡⟨ proof1 n ⟩
+            n ≡⟨ sym (proof1rev n p) ⟩
+            n -ᴺ 1 + 1
+            ∎)
 
-goodDepth : {a b : ℕ} → (isjust (treeDepth (b - a)) ≡ true) ≡ (b - a ≤ 1)
-goodDepth {a} {b} with (b - a) 
-... | zero = {!   !}
-... | suc p = {!   !}
--}
+proof3 : ∀ {m n} → m ≡ 1 + n → n ≤ m
+proof3 {.(1 + n)} {n} refl = n≤1+n n
 
-abszero : (n : ℕ) → n - n ≡ 0
-abszero zero = refl
-abszero (suc n) = abszero n
+proof4,0 : ∀ {m n} → m + 1 ≡ suc n → m ≡ n
+proof4,0 {m} {n} p = {!   !}
 
+proof4 : ∀ {m n o} → m ≤ n → m ⊔ n + 1 ≡ suc (suc o) → n ≡ suc o
+proof4 {m} {n} {o} p q = (begin
+                          n ≡⟨ sym (m≤n⇒m⊔n≡n p) ⟩
+                          m ⊔ n ≡⟨ {!   !} ⟩ --cong {!  !} {!   !} ⟩
+                          suc o
+                          ∎)
 
 
 leftRotation : {lower upper : ℕ∞} {h : ℕ} → AlmostAvlRight ℕ lower upper h → Avl ℕ lower upper (h -ᴺ 1)
-leftRotation (almostrightnode {l = l₁} {r = r₁} n l (rightheavynode {l = l₂} {r = r₂} rn rl rr rx) x) = subst {!   !} {!   !} {!   !} 
+leftRotation (almostrightnode {l = l₁} {r = r₁} n l (rightheavynode {l = l₂} {r = r₂} rn rl rr rx) x) 
+    rewrite proof1 (r₂ + 1) rewrite sym(m≤n⇒m⊔n≡n (proof3 rx)) = node rn (node n {! l  !} rl {!   !}) rr {!   !} --node {l = l₂} {r = r₂} rn {!   !} {! rr  !} {!   !} 
+--subst {!   !} {!   !} {!   !} 
 {-node rn (node n l rl (≤-trans (≤-reflexive 
     (begin
       l₂ - l₁ ≡⟨ cong (λ x → x - l₁) rx ⟩
