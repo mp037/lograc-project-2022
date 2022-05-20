@@ -1,13 +1,16 @@
 module Avl where
 
 open import Agda.Builtin.Nat using () renaming (_-_ to _-ᴺ_)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; _≤ᵇ_; _<ᵇ_; _≥_; _<_; z≤n; s≤s; _⊔_; compare; _⊓_) renaming (∣_-_∣ to _-_)
+open import Data.Nat renaming (∣_-_∣ to _-_)
 open import Data.Nat.Properties
 open import Data.List using (List; []; _∷_; length)
 open import Data.Bool.Base using (T; if_then_else_)
 open import Agda.Builtin.Bool public
 open import Data.Maybe
 open import Data.Sum.Base
+open import Relation.Nullary
+open import Data.Bool.Properties using (T?)
+open import Data.Empty
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong; subst; resp)
@@ -152,12 +155,67 @@ data _∈_ (n : ℕ) : {lower upper : ℕ∞} {h : ℕ} → Avl ℕ lower upper 
 6∈test3 : 6 ∈ test3
 6∈test3 = right here
 
+<-to-≤ : {n m : ℕ} → n < m → n ≤ m
+<-to-≤ {zero} ( s≤s p) = z≤n
+<-to-≤ {suc n} (s≤s p) = s≤s (<-to-≤ p)
+
+<∞-trans : {n m k : ℕ∞} → n <∞ m → m <∞ k → n <∞ k
+<∞-trans -∞<n      q         = -∞<n
+<∞-trans ([]<[] p) ([]<[] q) = []<[] (≤-trans p (<-to-≤ q))
+<∞-trans ([]<[] p) n<+∞      = n<+∞
+<∞-trans n<+∞      n<+∞      = n<+∞
+
+lower<∞upper : {h : ℕ} {lower upper : ℕ∞} (t : Avl ℕ lower upper h) → lower <∞ upper
+lower<∞upper {.zero} {lower} {upper} (empty p) = p
+lower<∞upper {.(l₁ ⊔ r₁ + 1)} {lower} {upper} (node {l = l₁} {r = r₁} n l r x) = <∞-trans (lower<∞upper l) (lower<∞upper r) 
+
+x∈t⇒l<x : {x h : ℕ} {lower upper : ℕ∞} {t : Avl ℕ lower upper h} → x ∈ t → lower <∞ [ x ]
+x∈t⇒l<x {x} {h} {lower} {upper} {node x l r p} here = lower<∞upper l
+x∈t⇒l<x (left p1) = x∈t⇒l<x p1
+x∈t⇒l<x {x} {h} {lower} {upper} {node x₁ l r p} (right p1) = <∞-trans (lower<∞upper l) (x∈t⇒l<x p1)
+
+x∈t⇒x<u : {x h : ℕ} {lower upper : ℕ∞} {t : Avl ℕ lower upper h} → x ∈ t → [ x ] <∞ upper
+x∈t⇒x<u {x} {h} {lower} {upper} {node x l r p} here = lower<∞upper r
+x∈t⇒x<u {x} {h} {lower} {upper} {node x₁ l r p} (left p1) = <∞-trans (x∈t⇒x<u p1) (lower<∞upper r)
+x∈t⇒x<u (right p) = x∈t⇒x<u p
+
+[]<[]⇒< : ∀ {m n} → [ m ] <∞ [ n ] → m < n
+[]<[]⇒< {m} {n} ([]<[] x) = x
+
+notinl⇒notint : {x n hl hr : ℕ} {lower upper : ℕ∞} {l : Avl ℕ lower [ n ] hl} {r : Avl ℕ [ n ] upper hr} {p : (hr - hl) ≤ 1} → x < n → ¬ (x ∈ l) → ¬ (x ∈ (node n l r p))
+notinl⇒notint p1 p2 here = <-irrefl refl p1
+notinl⇒notint p1 p2 (left p) = p2 p
+notinl⇒notint p1 p2 (right p) = <-asym p1 ([]<[]⇒< (x∈t⇒l<x p))
+
+notinr⇒notint : {x n hl hr : ℕ} {lower upper : ℕ∞} {l : Avl ℕ lower [ n ] hl} {r : Avl ℕ [ n ] upper hr} {p : (hr - hl) ≤ 1} → x > n → ¬ (x ∈ r) → ¬ (x ∈ (node n l r p))
+notinr⇒notint p1 p2 here = <-irrefl refl p1
+notinr⇒notint p1 p2 (left p) = <-asym p1 ([]<[]⇒< (x∈t⇒x<u p))
+notinr⇒notint p1 p2 (right p) = p2 p
+
+x∈l⇒x∈t : {x n hl hr : ℕ} {lower upper : ℕ∞} {l : Avl ℕ lower [ n ] hl} {r : Avl ℕ [ n ] upper hr} {p : (hr - hl) ≤ 1} → x < n → (x ∈ l) ⊎ ¬ (x ∈ l) → (x ∈ node n l r p) ⊎ ¬ (x ∈ node n l r p)
+x∈l⇒x∈t p1 p2 = Data.Sum.Base.map left (notinl⇒notint p1) p2
+
+x∈r⇒x∈t : {x n hl hr : ℕ} {lower upper : ℕ∞} {l : Avl ℕ lower [ n ] hl} {r : Avl ℕ [ n ] upper hr} {p : (hr - hl) ≤ 1} → x > n → (x ∈ r) ⊎ ¬ (x ∈ r) → (x ∈ node n l r p) ⊎ ¬ (x ∈ node n l r p)
+x∈r⇒x∈t p1 p2 = Data.Sum.Base.map right (notinr⇒notint p1) p2
+
+
+x</n,x>/n⇒x≡n : ∀ {x n : ℕ} → ¬ x < n → ¬ n < x → x ≡ n
+x</n,x>/n⇒x≡n p1 p2 = ≤∧≮⇒≡ (≮⇒≥ p2) p1
+
+
+search : (x : ℕ) {lower upper : ℕ∞} {h : ℕ} → (t : Avl ℕ lower upper h) → (x ∈ t) ⊎ (¬ (x ∈ t))
+search x (empty p) = inj₂ (λ ())
+search x (node n l r p) with x <? n | x >? n
+... | no ¬p | no ¬p₁ rewrite sym (x</n,x>/n⇒x≡n ¬p ¬p₁) = inj₁ here
+... | no ¬p | yes p₁ = x∈r⇒x∈t p₁ (search x r)
+... | yes p₁ | rez2 = x∈l⇒x∈t p₁ (search x l)
+
+
 data RightHeavyAvl (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element is the height of the tree
   rightheavynode : {l r : ℕ} → (n : ℕ)
             → Avl A lower [ n ] l
             → Avl A [ n ] upper r
-            --→ 1 ≤ r --l < r
-            → r ≡ 1 + l --r - l ≤ 1
+            → r ≡ 1 + l
             → RightHeavyAvl A lower upper (r + 1)
 
 data LeftHeavyAvl (A : Set) (lower upper : ℕ∞) : ℕ → Set where
@@ -172,8 +230,7 @@ data AlmostAvlRight (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the l
   almostrightnode : {l r : ℕ} → (n : ℕ)
             → Avl A lower [ n ] l
             → RightHeavyAvl A [ n ] upper r
-            --→ 2 ≤ r --l < r
-            → r ≡ 2 + l --r - l ≡ 2
+            → r ≡ 2 + l
             → AlmostAvlRight A lower upper (r + 1)
 
 
@@ -183,6 +240,20 @@ data AlmostAvlLeft (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the la
             → Avl A [ n ] upper r
             → l ≡ 2 + r
             → AlmostAvlLeft A lower upper (l + 1)
+
+data AlmostAvlLeftDouble (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element is the height of the tree
+  almostleftnodedouble : {l r : ℕ} → (n : ℕ)
+            → RightHeavyAvl A lower [ n ] l
+            → Avl A [ n ] upper r
+            → l ≡ 2 + r
+            → AlmostAvlLeftDouble A lower upper (l + 1)
+
+data AlmostAvlRightDouble (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element is the height of the tree
+  almostrightnodedouble : {l r : ℕ} → (n : ℕ)
+            → Avl A lower [ n ] l
+            → LeftHeavyAvl A [ n ] upper r
+            → r ≡ 2 + l
+            → AlmostAvlRightDouble A lower upper (r + 1)
 
 
 proof1 : ∀ n → n + 1 -ᴺ 1 ≡ n
@@ -299,14 +370,14 @@ leftRotation {lower} {upper} (almostrightnode {l = l₁} {r = r₁} n l (righthe
 rightRotation : {lower upper : ℕ∞} {h : ℕ} → AlmostAvlLeft ℕ lower upper h → Avl ℕ lower upper (h -ᴺ 1)
 rightRotation {lower} (almostleftnode {l = l₁} {r = r₁} n (leftheavynode {l = l₂} {r = r₂} ln ll lr lx) r x) rewrite proof1 (l₂ + 1) | sym (proof6,2 x lx) 
     = node {l = l₂} {r = r₂ ⊔ r₁ + 1} ln (subst (Avl ℕ lower [ ln ]) (proof6,2 x lx) ll) (node n lr r (proof8 x lx)) (proof10 x lx)
-    
+
+rightRotationDouble : {lower upper : ℕ∞} {h : ℕ} → AlmostAvlLeftDouble ℕ lower upper h → Avl ℕ lower upper (h -ᴺ 1)
+rightRotationDouble (almostleftnodedouble {l = l₁} {r = r₁} n (rightheavynode {l = l₂} {r = r₂} ln ll (node nrn lrl lrr lrx) lx) r x) rewrite proof1 (r₂ + 1) = {!   !}
 
 
-testcomp : (m n : ℕ) → Bool
-testcomp m n with compare m n
-... | Data.Nat.less .m k = {!   !}
-... | Data.Nat.equal .m = {!   !}
-... | Data.Nat.greater .n k = {!   !}
+almostAvlLeftTest : AlmostAvlLeft ℕ -∞ +∞ 3
+almostAvlLeftTest = almostleftnode 3 (leftheavynode 2 (node 1 (empty -∞<n) (empty ([]<[] (s≤s (s≤s z≤n)))) z≤n) (empty ([]<[] (s≤s (s≤s (s≤s z≤n))))) refl) (empty n<+∞) refl 
+
 
 data Tree (A : Set) (lower upper : ℕ∞) : ℕ → Set where
   emptytree : (p : lower <∞ upper) → Tree A lower upper zero
@@ -383,8 +454,6 @@ _⊔∞_ : (m n : ℕ∞) → ℕ∞
 ⊔∞-sym {+∞} {[ x ]} = refl
 ⊔∞-sym {+∞} {+∞} = refl
 
-proof9,0 : ∀ {m n} → [ m ] <∞ [ n ] → m < n
-proof9,0 {m} {n} ([]<[] x) = x
 
 proof9,0rev : ∀ {m n} → m < n → [ m ] <∞ [ n ]
 proof9,0rev {m} {n} p = []<[] p
@@ -393,7 +462,7 @@ proof9 : ∀ {m n} → m <∞ n → (n ⊓∞ m) <∞ n
 proof9 { -∞} { -∞} p = p
 proof9 { -∞} {[ x ]} p = p
 proof9 { -∞} {+∞} p = p
-proof9 {[ x ]} {[ y ]} p rewrite ⊓-comm y x | m≤n⇒m⊓n≡m (<⇒≤ (proof9,0 p)) = p
+proof9 {[ x ]} {[ y ]} p rewrite ⊓-comm y x | m≤n⇒m⊓n≡m (<⇒≤ ([]<[]⇒< p)) = p
 proof9 {[ x ]} {+∞} p = p
 proof9 {+∞} {+∞} p = p
 
@@ -401,26 +470,41 @@ proof9 {+∞} {+∞} p = p
 --proof9sym {m} {n} p = {!   !}
 
 []<∞n⇒[]⊔∞n≡n : ∀ {m n} → [ m ] <∞ n → [ m ] ⊔∞ n ≡ n
-[]<∞n⇒[]⊔∞n≡n {m} {[ x ]} p rewrite m≤n⇒m⊔n≡n (<⇒≤ (proof9,0 p)) = refl
+[]<∞n⇒[]⊔∞n≡n {m} {[ x ]} p rewrite m≤n⇒m⊔n≡n (<⇒≤ ([]<[]⇒< p)) = refl
 []<∞n⇒[]⊔∞n≡n {m} {+∞} p = refl
 
 []<∞n⇒[]<∞[]⊔∞n : ∀ {m n} → [ m ] <∞ n → [ m ] <∞ ([ m ] ⊔∞ n)
 []<∞n⇒[]<∞[]⊔∞n {m} {n} p rewrite []<∞n⇒[]⊔∞n≡n p = p
 
+n<∞[]⇒[]⊓∞n≡n : ∀ {m n} → n <∞ [ m ] → [ m ] ⊓∞ n ≡ n
+n<∞[]⇒[]⊓∞n≡n {m} { -∞} p = refl
+n<∞[]⇒[]⊓∞n≡n {m} {[ x ]} p rewrite m≥n⇒m⊓n≡n (<⇒≤ ([]<[]⇒< p)) = refl
+
+
+insert2 : {lower upper : ℕ∞} {h : ℕ} → (x : ℕ) → Avl ℕ lower upper h → (p1 : lower <∞ [ x ]) → (p2 : [ x ] <∞ upper) → ((((Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h) ⊎ (Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) (suc h))) ⊎ (AlmostAvlLeft ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) (suc h))) ⊎ (AlmostAvlLeft ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) (suc h))) 
+insert2 x (empty p) p1 p2 = inj₁ (inj₁ (inj₂ (node x (empty (proof9 p1)) (empty ([]<∞n⇒[]<∞[]⊔∞n p2)) z≤n)))
+insert2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 with compare x n
+... | Data.Nat.less .x k = {!   !}
+... | Data.Nat.equal .x = inj₁ (inj₁ (inj₁ (node n (subst (λ y → Avl ℕ y [ x ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) (subst (λ y → Avl ℕ [ x ] y r₁) (sym ([]<∞n⇒[]⊔∞n≡n p2)) r) p)))
+... | Data.Nat.greater .n k = {!   !}
+
+
 
 
 insert : {lower upper : ℕ∞} {h : ℕ} → (x : ℕ) → Avl ℕ lower upper h → (p1 : lower <∞ [ x ]) → (p2 : [ x ] <∞ upper) → (Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h) ⊎ (Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) (suc h))
-insert x (empty p) p1 p2 = inj₂ (node x (empty (proof9 p1)) (empty ([]<∞n⇒[]<∞[]⊔∞n p2))  z≤n)
-insert {lower} {upper} x (node n l r p) p1 p2 with compare x n
-... | Data.Nat.less .x k = {!   !}
-... | Data.Nat.equal .x = inj₁ (node n {! (subst ? ? ?) !} {! r  !} p)
+insert x (empty p) p1 p2 = inj₂ (node x (empty (proof9 p1)) (empty ([]<∞n⇒[]<∞[]⊔∞n p2)) z≤n)
+insert {lower} {upper} {h} x (node {l = l₁} {r = r₁} n l r p) p1 p2 with compare x n
+... | Data.Nat.less .x k = {!   !} --insert into left, compare l₁ with r₁; with (isAvl (insert2 x l)) --insert2 returns a non-avl tree
+... | Data.Nat.equal .x = inj₁ (node n (subst (λ y → Avl ℕ y [ x ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) (subst (λ y → Avl ℕ [ x ] y r₁) (sym ([]<∞n⇒[]⊔∞n≡n p2)) r) p)
 ... | Data.Nat.greater .n k = {!   !}
---insert x (empty p) = inj₂ (node x (empty {!   !}) {!   !} {!   !}) 
---insert x (node n t t₁ x₁) = {!   !}
+
+
+--subst (λ y → Avl ℕ y [ x ] h) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l
+
 
 
 
 --AVL N = Avl N -inf +inf
 
 
-       
+            
