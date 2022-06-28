@@ -221,14 +221,34 @@ insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ with ne
     where newT = insert x r ([]<[] p₁) p2 -- inserting in the right subtree
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₁ x₁ , snd₁ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | sym x₁ = suc (l₁ ⊔ fst₁) , (avl n l fst₂ p) ,′ inj₁ (+-comm 1 (l₁ ⊔ fst₁))
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ with fst₁ - l₁ ≤? 1 --? 1
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ with d2 >? d1 --check if rightLeaning
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(zero ⊔ d2 + 1) , node {l = .zero} {r = d2} n₁ (empty p₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ = contradiction (proof30 (≰⇒> (subst (λ x → ((x + 1) - l₁) ≤ 1 → ⊥) (n<1⇒n≡0 (≰⇒> ¬p₂)) ¬p₁))) (<⇒≱  (s≤s (≤-step (proof29 (proof28 y ¬p₂) p))))
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + 1) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ with ld2 >? ld1 | ld2 <? ld1
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + 1) , node {.(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ | no ¬p₄ = {!   !}
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ | yes p₂ = {!   !}
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ | rez2 
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ with d2 >? d1 | d2 <? d1 --check if rightLeaning
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(zero ⊔ d2 + _) , node {l = .zero} {r = d2} n₁ (empty p₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | rez2 = contradiction (proof30 (≰⇒> (subst (λ x → ((x + 1) - l₁) ≤ 1 → ⊥) (n<1⇒n≡0 (≰⇒> ¬p₂)) ¬p₁))) (<⇒≱  (s≤s (≤-step (proof29 (proof28 y ¬p₂) p))))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ = {!   !} -- d1=d2
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ with ld2 >? ld1 | ld2 <? ld1
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ | false because proof₁ | rez2 = {!   !}
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ | yes p₃ | rez2
     = {! ? , (rlRotR n n₁ n₂ l fst₂ fst₄ fst₃) ,′ ?  !}
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | yes p₂ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | proof27' (proof22 x₁ p₂) p (subst (λ x → x ≡ suc r₁) (+-comm (d1 ⊔ d2) 1) y) p₂ (subst (λ x → (x - l₁ ≤ 1 → ⊥)) (+-comm (d1 ⊔ d2) 1) ¬p₁) | proof27,1 (proof22 x₁ p₂) (proof27' (proof22 x₁ p₂) p (subst (λ x → x ≡ suc r₁) (+-comm (d1 ⊔ d2) 1) y) p₂ (subst (λ x → (x - l₁ ≤ 1 → ⊥)) (+-comm (d1 ⊔ d2) 1) ¬p₁))
+    where p3 : r₁ ≡ suc l₁
+          p3 = ∣n-m∣≤1⇒∣suc[n]-m|>1⇒n≡suc[m] p (≰⇒> (subst (λ x → x - l₁ ≤ 1 → ⊥) y ¬p₁))
+          p4 : ld1 ⊔ ld2 ≡ ld2
+          p4 = m≤n⇒m⊔n≡n (<⇒≤ p₃)
+          p5 : ld2 ≡ suc ld1
+          p5 = proof22 x₂ p₃
+          p6 : ld2 ≡ d2
+          p6 = suc-injective (subst (λ x → x ≡ suc d2) (+-comm ld2 1) (proof22 (subst (λ x → x ≤ 1) (∣-∣-comm d2 (ld2 + 1)) (subst (λ x → d2 - (x + 1) ≤ 1) p4 x₁)) (subst (λ x → suc d2 ≤ x + 1) p4 p₂)))
+          p7 : r₁ ≡ suc ld2
+          p7 = suc-injective (sym (subst (λ x → x ≡ suc r₁) (sym (+-comm 1 (suc ld2))) (subst (λ x → x ≡ suc r₁) (sym (+-comm 1 (ld2 + 1))) (subst (λ x → x + 1 ≡ suc r₁) (m≥n⇒m⊔n≡m (subst (λ x → x ≥ d2) (+-comm 1 ld2) (subst (λ x → suc ld2 ≥ x) p6 (n≤1+n ld2)))) (subst (λ x → x + 1 ⊔ d2 + 1 ≡ suc r₁) p4 y)))))
+          p8 : l₁ ≡ ld2
+          p8 = suc-injective (subst (λ x → x ≡ suc ld2) p3 p7)
+          p9 : l₁ ≡ ld1 + 1
+          p9 rewrite +-comm ld1 1 | sym p5 = p8
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ rez = ?
+-- with ld2 >? ld1 | ld2 <? ld1
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + 1) , node {.(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ | no ¬p₄ = {!   !}
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ | yes p₂ = {!   !}
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ | rez2 
+--    = {! ? , (rlRotR n n₁ n₂ l fst₂ fst₄ fst₃) ,′ ?  !}
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | yes p₂ | rez rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | proof27' (proof22 x₁ p₂) p (subst (λ x → x ≡ suc r₁) (+-comm (d1 ⊔ d2) 1) y) p₂ (subst (λ x → (x - l₁ ≤ 1 → ⊥)) (+-comm (d1 ⊔ d2) 1) ¬p₁) | proof27,1 (proof22 x₁ p₂) (proof27' (proof22 x₁ p₂) p (subst (λ x → x ≡ suc r₁) (+-comm (d1 ⊔ d2) 1) y) p₂ (subst (λ x → (x - l₁ ≤ 1 → ⊥)) (+-comm (d1 ⊔ d2) 1) ¬p₁))
     = l₁ + 1 + 1 , (rrRot n n₁ l fst₂ fst₃) ,′ inj₁ (cong (λ x → x + 1) (subst (λ x → l₁ + 1 ≡ x) (sym (m≤n⇒m⊔n≡n (subst (λ x → l₁ ≤ x) (subst (λ x → x ≡ r₁) (m≤n⇒m⊔n≡n (<⇒≤ p₂)) (proof4,0 y)) (subst (λ x → l₁ ≤ x) (sym (proof27,1 (proof22 x₁ p₂) p3)) (subst (λ x → l₁ ≤ x) (+-comm 1 l₁) (n≤1+n l₁)))))) (subst (λ x → l₁ + 1 ≡ x) p4 (subst (λ x → l₁ + 1 ≡ x) (sym p5) (+-comm l₁ 1)))))
     where p3 : d1 ≡ l₁
           p3 = proof27' (proof22 x₁ p₂) p (subst (λ x → x ≡ suc r₁) (+-comm (d1 ⊔ d2) 1) y) p₂ (subst (λ x → (x - l₁ ≤ 1 → ⊥)) (+-comm (d1 ⊔ d2) 1) ¬p₁)
