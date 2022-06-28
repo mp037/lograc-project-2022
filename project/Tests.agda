@@ -57,3 +57,6 @@ testTree2 = node 5 (empty ([]<[] (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))
 
 testInsertTree : InsertTree -∞ +∞ 3
 testInsertTree = avl 4 testTree1 testTree2 (s≤s z≤n)
+
+
+--insertTest = {! insert  !}

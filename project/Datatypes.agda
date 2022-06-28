@@ -32,7 +32,7 @@ data _<∞_ : ℕ∞ → ℕ∞ → Set where
   n<+∞  : {n   : ℕ∞}  →           n   <∞  +∞
 
 
-data Avl (A : Set) (lower upper : ℕ∞) : ℕ → Set where --the last element is the height of the tree
+data Avl (A : Set) (lower upper : ℕ∞) : ℕ → Set where       --the last element is the height of the tree
   empty : (p : lower <∞ upper) → Avl A lower upper zero
   node : {l r : ℕ} → (n : ℕ)
             → Avl A lower [ n ] l
@@ -129,6 +129,12 @@ data InsertTree (lower upper : ℕ∞) : ℕ → Set where
             → Avl ℕ [ rln ] [ rn ] (h + 1)
             → Avl ℕ [ rn ] upper (h + 1)
             → InsertTree lower upper (h + 1 + 1 + 1)
+  rlRotInit : {h : ℕ} → (n rn rln : ℕ)
+            → Avl ℕ lower [ n ] h
+            → Avl ℕ [ n ] [ rln ] h
+            → Avl ℕ [ rln ] [ rn ] h
+            → Avl ℕ [ rn ] upper h
+            → InsertTree lower upper (h + 1 + 1)
 
 _⊓∞_ : (m n : ℕ∞) → ℕ∞
 -∞ ⊓∞ _ = -∞
@@ -144,36 +150,4 @@ _⊔∞_ : (m n : ℕ∞) → ℕ∞
 [ x ] ⊔∞ +∞ = +∞
 +∞ ⊔∞ n = +∞
 
-{-
-data Tree (A : Set) (lower upper : ℕ∞) : ℕ → Set where
-  emptytree : (p : lower <∞ upper) → Tree A lower upper zero
-  nodetree : {l r : ℕ} → (n : ℕ)
-            → Tree A lower [ n ] l
-            → Tree A [ n ] upper r
-            → Tree A lower upper ((l ⊔ r) + 1)
-
-transform : {lower upper : ℕ∞} {h : ℕ} → Avl ℕ lower upper h → Tree ℕ lower upper h
-transform (empty p) = emptytree p
-transform (node n l r x) = nodetree n (transform l) (transform r)
-
-
-isAlmostAvl : {lower upper : ℕ∞} {h : ℕ} → Tree ℕ lower upper h → Bool
-isAlmostAvl (emptytree p) = false
-isAlmostAvl (nodetree {l = l₁} {r = r₁} n l r) with (l₁ - r₁) 
-... | zero = false
-... | suc zero = false
-... | suc (suc p) = true
-
-
-isLeftLeaning : {lower upper : ℕ∞} {h : ℕ} → Avl ℕ lower upper h → Bool
-isLeftLeaning (empty p) = false
-isLeftLeaning (node {l = l₁} {r = r₁} n l r x) = r₁ <ᵇ l₁
-
-isRightLeaning : {lower upper : ℕ∞} {h : ℕ} → Avl ℕ lower upper h → Bool
-isRightLeaning (empty p) = false
-isRightLeaning (node {l = l₁} {r = r₁} n l r x) = l₁ <ᵇ r₁
-
-isLeftLeaning2 : {lower upper : ℕ∞} {h x1 x2 : ℕ} → 0 < h → Avl ℕ lower upper h → Dec (x1 < x2)
-isLeftLeaning2 p (node {l = l₁} {r = r₁} n l r x) = {!   !} -- {! r₁ <? l₁  !}
--}
 

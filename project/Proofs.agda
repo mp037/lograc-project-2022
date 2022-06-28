@@ -100,8 +100,15 @@ proof4,0 {m} {n} p rewrite +-comm m 1 = suc-injective p
 proof4 : ∀ {m n o} → m ≤ n → m ⊔ n + 1 ≡ suc (suc o) → n ≡ suc o
 proof4 {m} {n} {o} p q = (begin
                           n ≡⟨ sym (m≤n⇒m⊔n≡n p) ⟩
-                          m ⊔ n ≡⟨ proof4,0 q ⟩ --cong {!  !} {!   !} ⟩
+                          m ⊔ n ≡⟨ proof4,0 q ⟩
                           suc o
+                          ∎)
+
+proof4' : ∀ {m n o} → m ≤ n → n ⊔ m + 1 ≡ suc o → n ≡ o
+proof4' {m} {n} {o} p q = (begin
+                          n ≡⟨ sym (m≥n⇒m⊔n≡m p) ⟩
+                          n ⊔ m ≡⟨ proof4,0 q ⟩ 
+                          o
                           ∎)
 
 proof5 : ∀ {m n o} → m ≡ suc n → m ≡ suc o → n ≡ o
