@@ -135,6 +135,12 @@ data InsertTree (lower upper : ℕ∞) : ℕ → Set where
             → Avl ℕ [ rln ] [ rn ] h
             → Avl ℕ [ rn ] upper h
             → InsertTree lower upper (h + 1 + 1)
+  lrRotInit : {h : ℕ} → (n ln lrn : ℕ)
+            → Avl ℕ lower [ ln ] h
+            → Avl ℕ [ ln ] [ lrn ] h
+            → Avl ℕ [ lrn ] [ n ] h
+            → Avl ℕ [ n ] upper h
+            → InsertTree lower upper (h + 1 + 1)
 
 _⊓∞_ : (m n : ℕ∞) → ℕ∞
 -∞ ⊓∞ _ = -∞
