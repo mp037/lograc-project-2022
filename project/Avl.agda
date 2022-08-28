@@ -21,7 +21,7 @@ open import Datatypes
 open import Proofs
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; sym; trans; cong; subst; resp)
+open Eq using (_≡_; refl; sym; trans; cong; subst; resp; _≢_)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import Axiom.Extensionality.Propositional using (Extensionality)
 
@@ -121,24 +121,6 @@ rightRotation : {lower upper : ℕ∞} {h : ℕ} → AlmostAvlLeft ℕ lower upp
 rightRotation {lower} (almostleftnode {l = l₁} {r = r₁} n (leftheavynode {l = l₂} {r = r₂} ln ll lr lx) r x) rewrite proof1 (l₂ + 1) | sym (proof6,2 x lx) 
     = node {l = l₂} {r = r₂ ⊔ r₁ + 1} ln (subst (Avl ℕ lower [ ln ]) (proof6,2 x lx) ll) (node n lr r (proof8 x lx)) (proof10 x lx)
 
-{-
-rightRotationDouble : {lower upper : ℕ∞} {h : ℕ} → AlmostAvlLeftDouble ℕ lower upper h → Avl ℕ lower upper (h -ᴺ 1)
-rightRotationDouble  {lower} {upper} (almostleftnodedouble {l = l₁} {r = r₁} n 
-    (rightheavynode {l = l₂} {r = r₂} ln ll (node {l = l₃} {r = r₃} lrn lrl lrr lrx) lx) r x) rewrite proof1 (r₂ + 1) | proof12 {l₃} {r₃}      --proof13 lx x
-    = node lrn (node ln {!  ll !} lrl {!   !}) (node n {!   !} {!   !} {!   !}) {!   !}
--}
-
---(node n lrr r (proof11 x lrx))
---(subst {! Avl ℕ lower [ ln ]  !} (proof13 (cong suc lx) x) ll)
--- λ x → Avl ℕ lower [ ln ] (x + 1)
---(subst (Avl ℕ lower [ ln ]) (proof13 (cong suc lx) x) ll)
-{-
-proof23,0 : ∀ {m n o p} → n ≡ suc m → p - o ≤ 1 → m ⊔ n + 1 ≡ suc p → suc m ≤ n → m -ᴺ o ≡ 0
-proof23,0 {m} {n} {o} {p} p1 p2 p3 p4 = ≤-antisym (≤-pred {!   !}) {!   !}
-
-proof23 : ∀ {m n o p} → n ≡ suc m → p - o ≤ 1 → m ⊔ n + 1 ≡ suc p → suc m ≤ n → m ≡ o
-proof23 {m} {n} {o} {p} p1 p2 p3 p4 = ≤-antisym (m∸n≡0⇒m≤n {!   !}) (m∸n≡0⇒m≤n {!   !})
--}
 
 proof24 : ∀ {m n o} → m ≡ suc o → suc n ≤ o → n ⊔ m ≡ o + 1
 proof24 {m} {n} {o} p1 p2 rewrite p1 | m≤n⇒m⊔n≡n (≤-step (<⇒≤ p2)) | +-comm o 1 = refl
@@ -156,31 +138,9 @@ testproof : ∀ {n} → ¬ n ≡ suc n
 testproof {zero} = λ ()
 testproof {suc n} = testproof ∘ suc-injective
 
---proof27,0 : ∀ {m n} → m ≡ n → ¬ m ≡ suc n
---proof27,0 {m} {n} p rewrite p = testproof
 
 proof27,0 : ∀ {m n} → m ≡ suc n → ¬ m ≡ n
 proof27,0 {m} {n} p rewrite p = 1+n≢n
-
-{-
-proof27 : ∀ {m n o p} → n ≡ suc m → p - o ≤ 1 → m ⊔ n + 1 ≡ suc p → suc m ≤ n → ((m ⊔ n + 1) - o ≤ 1 → ⊥) → m ≡ o
-proof27 {m} {n} {o} {p} p1 p2 p3 p4 p5 = proof5 p1 p10
-    where p6 : (p - o) ≤ ((m ⊔ n + 1) - o)
-          p6 = proof25 p2 (≰⇒> p5)
-          p7 : m ⊔ n ≥ o
-          p7 = proof26 (subst (λ x → (x - o) ≤ (suc (m ⊔ n) - o)) (sym (proof4,0 p3)) (subst (λ x → (p - o) ≤ (x - o)) (+-comm (m ⊔ n) 1) p6))
-          p8 : o ≤ n
-          p8 = ≤-trans p7 (≤-reflexive (m≤n⇒m⊔n≡n (<⇒≤ p4)))
-          p9 : n -ᴺ o ≤ 1
-          p9 = subst (λ x → x ≤ 1) (m≤n⇒∣n-m∣≡n∸m p8) (subst (λ x → x - o ≤ 1) (subst (λ x → p ≡ x) ((m≤n⇒m⊔n≡n (<⇒≤ p4))) (sym (proof4,0 p3))) p2)
-          p10 : n ≡ suc o
-          p10 with n -ᴺ o <? 1 | n -ᴺ o >? 1
-          ... | no ¬p | no ¬p₁ = subst (λ x → x ≡ suc o) (m∸n+n≡m p8) (cong (λ x → x + o) p11)
-            where p11 = x</n,x>/n⇒x≡n ¬p ¬p₁
-          ... | no ¬p | yes p₁ = contradiction p₁ (≤⇒≯ p9)
-          ... | yes p₁ | rez2 = {! contradiction p12 (proof27,0 p10)  !} -- contradiction p12 (proof27,0 p10)    --p10 (proof27,0 p12)
-            where p12 = subst (λ x → x ≡ o) (m∸n+n≡m p8) (cong (λ x → x + o) (n≤0⇒n≡0 (≤-pred p₁)))
--}
 
 
 ∣suc[n]-m∣≤1⇒∣suc[suc[n]]-m|>1⇒n≡m : ∀ {n m}
@@ -219,20 +179,31 @@ proof30 {zero} p = contradiction p (<⇒≱ (s≤s (s≤s z≤n)))
 proof30 {suc (suc zero)} p = contradiction p (<⇒≱  (s≤s (s≤s z≤n)))
 proof30 {suc (suc (suc n))} p = s≤s p
 
+{-
+insert : {lower upper : ℕ∞} {h : ℕ} 
+        → (x : ℕ) 
+        → Avl ℕ lower upper h 
+        → (p1 : lower <∞ [ x ]) 
+        → (p2 : [ x ] <∞ upper) 
+        → Σ[ h' ∈ ℕ ] ((Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h') × ((h' ≡ h) ⊎ (h' ≡ suc h)) × (0 < h'))
 
-insert : {lower upper : ℕ∞} {h : ℕ} → (x : ℕ) → Avl ℕ lower upper h → (p1 : lower <∞ [ x ]) → (p2 : [ x ] <∞ upper) → Σ[ h' ∈ ℕ ] ((Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h') × ((h' ≡ h) ⊎ (h' ≡ suc h)) × (0 < h'))
-
-insert' : {lower upper : ℕ∞} {h : ℕ} → (x : ℕ) → Avl ℕ lower upper h → (p1 : lower <∞ [ x ]) → (p2 : [ x ] <∞ upper) → Σ[ h' ∈ ℕ ] ((InsertTree lower upper h') × ((h' ≡ h) ⊎ (h' ≡ suc h)))
+insert' : {lower upper : ℕ∞} {h : ℕ} 
+        → (x : ℕ) 
+        → Avl ℕ lower upper h 
+        → (p1 : lower <∞ [ x ]) 
+        → (p2 : [ x ] <∞ upper) 
+        → Σ[ h' ∈ ℕ ] ((InsertTree lower upper h') × ((h' ≡ h) ⊎ (h' ≡ suc h)))
 insert' x (empty p) p1 p2 = 1 , (avl x (empty p1) (empty p2) z≤n) ,′ inj₂ refl
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 with x <? n | x >? n --? n | x >? n
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | no ¬p₁ rewrite sym (x</n,x>/n⇒x≡n ¬p ¬p₁) = suc (l₁ ⊔ r₁) , (avl {l = l₁} {r = r₁} x l r p) ,′ inj₁ (+-comm 1 (l₁ ⊔ r₁))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | no ¬p₁ rewrite sym (x</n,x>/n⇒x≡n ¬p ¬p₁) = (l₁ ⊔ r₁) + 1 , avl {l = l₁} {r = r₁} x l r p ,′ inj₁ refl --(avl {l = l₁} {r = r₁} x l r p) ,′ inj₁ (+-comm 1 (l₁ ⊔ r₁))
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ with newT
     where newT = insert x r ([]<[] p₁) p2 -- inserting in the right subtree
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₁ x₁ , snd₁ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | sym x₁ = suc (l₁ ⊔ fst₁) , (avl n l fst₂ p) ,′ inj₁ (+-comm 1 (l₁ ⊔ fst₁))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₁ x₁ , snd₁ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | sym x₁ = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p ,′ inj₁ refl --(avl n l fst₂ p) ,′ inj₁ (+-comm 1 (l₁ ⊔ fst₁))
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ with fst₁ - l₁ ≤? 1 --? 1
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ with d2 >? d1 | d2 <? d1 --check if rightLeaning
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(zero ⊔ d2 + _) , node {l = .zero} {r = d2} n₁ (empty p₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | rez2 = contradiction (proof30 (≰⇒> (subst (λ x → ((x + 1) - l₁) ≤ 1 → ⊥) (n<1⇒n≡0 (≰⇒> ¬p₂)) ¬p₁))) (<⇒≱  (s≤s (≤-step (proof29 (proof28 y ¬p₂) p))))
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ = {!   !} -- d1=d2
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ = {!   !}
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(zero ⊔ d2 + _) , node {l = .zero} {r = d2} n₁ (empty p₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | rez2 = contradiction (proof30 (≰⇒> (subst (λ x → ((x + 1) - l₁) ≤ 1 → ⊥) (n<1⇒n≡0 (≰⇒> ¬p₂)) ¬p₁))) (<⇒≱  (s≤s (≤-step (proof29 (proof28 y ¬p₂) p))))
+--insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | no ¬p₃ = {!   !} -- d1=d2
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + 1 ⊔ d2 + _) , node {l = .(ld1 ⊔ ld2 + 1)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ with ld2 >? ld1 | ld2 <? ld1
 insert' {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(ld1 ⊔ ld2 + _ ⊔ d2 + _) , node {.(ld1 ⊔ ld2 + _)} {r = d2} n₁ (node {l = ld1} {r = ld2} n₂ fst₂ fst₄ x₂) fst₃ x₁ , inj₂ y , snd₁ | no ¬p₁ | no ¬p₂ | yes p₂ | no ¬p₃ | no ¬p₄ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 -- ld1=ld2
     = l₁ + 1 + 1 , (rlRotInit n n₁ n₂ l (subst (Avl ℕ [ n ] [ n₂ ]) p9 fst₂) (subst (Avl ℕ [ n₂ ] [ n₁ ]) (sym p8) fst₄) (subst (Avl ℕ [ n₁ ] upper) p10 fst₃)) ,′ inj₁ (cong (λ x → x + 1) (subst (λ x → l₁ + 1 ≡ x) (sym (m≤n⇒m⊔n≡n p11)) (subst (λ x → x ≡ r₁) (+-comm 1 l₁) (sym p3))))
@@ -303,12 +274,12 @@ insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(d1 
           p5 : d2 ≡ suc l₁
           p5 = subst (λ x → d2 ≡ suc x) p3 (proof22 x₁ p₂)
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 with l₁ <? r₁ | l₁ >? r₁ --? r₁ | l₁ >? r₁
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ rewrite sym (x</n,x>/n⇒x≡n ¬p₁ ¬p₂) | ⊔-idem l₁ = suc (l₁ ⊔ fst₁) , (avl n l fst₂ p₂) ,′ inj₂ (cong suc (subst (λ x → l₁ ⊔ x ≡ l₁ + 1) (sym y) (subst (λ x → x ≡ l₁ + 1) (sym (m≤n⇒m⊔n≡n (n≤1+n l₁))) (+-comm 1 l₁)))) 
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p₁ | yes p₃ rewrite m≥n⇒m⊔n≡m (<⇒≤ p₃) | +-comm l₁ 1 = suc (l₁ ⊔ fst₁) , (avl n l fst₂ p₂) ,′ inj₁ (cong suc (m≥n⇒m⊔n≡m (subst (λ x → l₁ ≥ x) (sym y) p₃)))
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | yes p₃ | rez2 rewrite m≤n⇒m⊔n≡n (<⇒≤ p₃) = suc (l₁ ⊔ fst₁) , (avl n l fst₂ p₂) ,′ inj₂ (cong suc (proof24 y p₃))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ rewrite sym (x</n,x>/n⇒x≡n ¬p₁ ¬p₂) | ⊔-idem l₁ = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p₂ ,′ inj₂ (subst (λ x → l₁ ⊔ x + 1 ≡ suc (l₁ + 1)) (sym y) (subst (λ x → x + 1 ≡ suc (l₁ + 1)) (sym (m≤n⇒m⊔n≡n (n≤1+n l₁))) refl)) --(avl n l fst₂ p₂) ,′ inj₂ (cong suc (subst (λ x → l₁ ⊔ x ≡ l₁ + 1) (sym y) (subst (λ x → x ≡ l₁ + 1) (sym (m≤n⇒m⊔n≡n (n≤1+n l₁))) (+-comm 1 l₁)))) 
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p₁ | yes p₃ rewrite m≥n⇒m⊔n≡m (<⇒≤ p₃) | +-comm l₁ 1 = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p₂ ,′ inj₁ (subst (λ x → x ≡ suc l₁) (+-comm 1 (l₁ ⊔ fst₁)) (cong suc (m≥n⇒m⊔n≡m (subst (λ x → l₁ ≥ x) (sym y) p₃)))) --(avl n l fst₂ p₂) ,′ inj₁ (cong suc (m≥n⇒m⊔n≡m (subst (λ x → l₁ ≥ x) (sym y) p₃)))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | yes p₃ | rez2 rewrite m≤n⇒m⊔n≡n (<⇒≤ p₃) = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p₂ ,′ inj₂ (subst (λ x → x ≡ suc (r₁ + 1)) (+-comm 1 (l₁ ⊔ fst₁)) (cong suc (proof24 y p₃))) --(avl n l fst₂ p₂) ,′ inj₂ (cong suc (proof24 y p₃))
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 with newT --inserting in the left subtree
     where newT = insert x l p1 ([]<[] p₁)
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₁ x₁ , snd₁ rewrite m≤n⇒m⊔n≡n (<⇒≤ p₁) | sym x₁ | n<∞[]⇒[]⊓∞n≡n p1 = suc (fst₁ ⊔ r₁) , (avl n fst₂ r p) ,′ inj₁ (+-comm 1 (fst₁ ⊔ r₁))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₁ x₁ , snd₁ rewrite m≤n⇒m⊔n≡n (<⇒≤ p₁) | sym x₁ | n<∞[]⇒[]⊓∞n≡n p1 = (fst₁ ⊔ r₁) + 1 , avl n fst₂ r p ,′ inj₁ refl --(avl n fst₂ r p) ,′ inj₁ (+-comm 1 (fst₁ ⊔ r₁))
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ with r₁ - fst₁ ≤? 1 
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | .(d1 ⊔ d2 + 1) , node {l = d1} {r = d2} n₁ fst₂ fst₃ x₁ , inj₂ y , snd₁ | no ¬p with d1 >? d2 | d1 <? d2 --check if leftLeaning 
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | .(d1 ⊔ zero + _) , node {l = d1} {r = .zero} n₁ fst₂ (empty p₂) x₁ , inj₂ y , snd₁ | no ¬p | no ¬p₁ | rez = contradiction (proof30 (subst (λ x → x > 1) (∣-∣-comm r₁ 1) (≰⇒> (subst (λ x → (r₁ - (x + 1)) ≤ 1 → ⊥) (n<1⇒n≡0 (≰⇒> ¬p₁)) (subst (λ x → (r₁ - (x + 1)) ≤ 1 → ⊥) (m≥n⇒m⊔n≡m z≤n) ¬p))))) (<⇒≱  (s≤s (≤-step (proof29 (proof28 (subst (λ x → x + 1 ≡ suc l₁) (m≥n⇒m⊔n≡m z≤n) y) ¬p₁) (subst (λ x → x ≤ 1) (∣-∣-comm r₁ l₁) p)))))
@@ -383,14 +354,14 @@ insert' {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ 
           p5 : suc d2 ≡ l₁
           p5 = subst (λ x → x ≡ l₁) (+-comm d2 1) (proof4' (subst (λ x → d2 ≤ x) (+-comm 1 d2) (n≤1+n d2)) y)
 insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ rewrite m≤n⇒m⊔n≡n (<⇒≤ p₁) | n<∞[]⇒[]⊓∞n≡n p1 with l₁ <? r₁ | l₁ >? r₁ 
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p | no ¬p₁ rewrite x</n,x>/n⇒x≡n ¬p ¬p₁ | ⊔-idem r₁ = suc (fst₁ ⊔ r₁) , (avl n fst₂ r p₂) ,′ inj₂ (cong suc (subst (λ x → x ⊔ r₁ ≡ r₁ + 1) (sym y) (subst (λ x → x ≡ r₁ + 1) (sym (m≥n⇒m⊔n≡m (n≤1+n r₁))) (+-comm 1 r₁))))
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p | yes p₃ rewrite m≥n⇒m⊔n≡m (<⇒≤ p₃) = suc (fst₁ ⊔ r₁) , (avl n fst₂ r p₂) ,′ inj₂ (cong suc (subst (λ x → x ≡ l₁ + 1) (⊔-comm r₁ fst₁) (proof24 y p₃)))
-insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | yes p₃ | rez rewrite m≤n⇒m⊔n≡n (<⇒≤ p₃) | +-comm r₁ 1 = suc (fst₁ ⊔ r₁) , (avl n fst₂ r p₂) ,′ inj₁ (cong suc (m≤n⇒m⊔n≡n (subst (λ x → x ≤ r₁) (sym y) p₃)))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p | no ¬p₁ rewrite x</n,x>/n⇒x≡n ¬p ¬p₁ | ⊔-idem r₁ = (fst₁ ⊔ r₁) + 1 , avl n fst₂ r p₂ ,′ inj₂ (subst (λ x → x ≡ suc (r₁ + 1)) (+-comm 1 (fst₁ ⊔ r₁)) (cong suc (subst (λ x → x ⊔ r₁ ≡ r₁ + 1) (sym y) (subst (λ x → x ≡ r₁ + 1) (sym (m≥n⇒m⊔n≡m (n≤1+n r₁))) (+-comm 1 r₁))))) --(avl n fst₂ r p₂) ,′ inj₂ (cong suc (subst (λ x → x ⊔ r₁ ≡ r₁ + 1) (sym y) (subst (λ x → x ≡ r₁ + 1) (sym (m≥n⇒m⊔n≡m (n≤1+n r₁))) (+-comm 1 r₁))))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | no ¬p | yes p₃ rewrite m≥n⇒m⊔n≡m (<⇒≤ p₃) = (fst₁ ⊔ r₁) + 1 , avl n fst₂ r p₂ ,′ inj₂ (subst (λ x → x ≡ suc (l₁ + 1)) (+-comm 1 (fst₁ ⊔ r₁)) (cong suc (subst (λ x → x ≡ l₁ + 1) (⊔-comm r₁ fst₁) (proof24 y p₃)))) --(avl n fst₂ r p₂) ,′ inj₂ (cong suc (subst (λ x → x ≡ l₁ + 1) (⊔-comm r₁ fst₁) (proof24 y p₃)))
+insert' x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | fst₁ , fst₂ , inj₂ y , snd₁ | yes p₂ | yes p₃ | rez rewrite m≤n⇒m⊔n≡n (<⇒≤ p₃) | +-comm r₁ 1 = (fst₁ ⊔ r₁) + 1 , avl n fst₂ r p₂ ,′ inj₁ (subst (λ x → x ≡ suc r₁) (+-comm 1 (fst₁ ⊔ r₁)) (cong suc (m≤n⇒m⊔n≡n (subst (λ x → x ≤ r₁) (sym y) p₃)))) --(avl n fst₂ r p₂) ,′ inj₁ (cong suc (m≤n⇒m⊔n≡n (subst (λ x → x ≤ r₁) (sym y) p₃)))
 
 
 
 insert {lower} {upper} {h} x t p1 p2 rewrite n<∞[]⇒[]⊓∞n≡n p1 | []<∞n⇒[]⊔∞n≡n p2 with insert' x t p1 p2
-... | .(suc (l₁ ⊔ r₁)) , avl {l = l₁} {r = r₁} n l r p , snd₁ = (l₁ ⊔ r₁ + 1) , (node n l r p) ,′ subst (λ x → x ≡ h ⊎ x ≡ suc h) (+-comm 1 (l₁ ⊔ r₁)) snd₁ ,′ subst (λ x → 1 ≤ x) (+-comm 1 (l₁ ⊔ r₁)) (s≤s z≤n)
+... | .((l₁ ⊔ r₁) + 1) , avl {l = l₁} {r = r₁} n l r p , snd₁ = (l₁ ⊔ r₁ + 1) , (node n l r p) ,′ snd₁ ,′ subst (λ x → 1 ≤ x) (+-comm 1 (l₁ ⊔ r₁)) (s≤s z≤n) --subst (λ x → x ≡ h ⊎ x ≡ suc h) (+-comm 1 (l₁ ⊔ r₁)) snd₁
 ... | .(h₁ + 1 + 1) , llRot {h = h₁} n ln t1 t2 t3 , snd₁ = h₁ + 1 + 1 , (leftRotation1 n ln t1 t2 t3) ,′ snd₁ ,′ subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
 ... | .(h₁ + 1 + 1) , rrRot {h = h₁} n rn t1 t2 t3 , snd₁ = h₁ + 1 + 1 , (rightRotation1 n rn t1 t2 t3) ,′ snd₁ ,′ subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
 ... | .(h₁ + 1 + 1 + 1) , lrRotL {h = h₁} n ln lrn t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 + 1 , (leftRightRotationL n ln lrn t1 t2 t3 t4) ,′ snd₁ ,′ subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1 + 1)) (s≤s z≤n)
@@ -423,7 +394,145 @@ insertTest4 = proj₁ (snd (insert 3 insertTest3 -∞<n n<+∞))
 
 insertTest5 : Avl ℕ -∞ +∞ 3
 insertTest5 = proj₁ (snd (insert 3 (proj₁ (snd (insert 0 insertTest3 -∞<n n<+∞))) -∞<n n<+∞))
+-}
+
+m≡sucn∧m≡1⇒n≡0 : ∀ {m n} → m ≡ suc n → m ≡ 1 → n ≡ 0
+m≡sucn∧m≡1⇒n≡0 {m} {n} p1 p2 = cong pred (subst (λ x → x ≡ 1) p1 p2)
+
+m≡o∧n≤o⇒m-n≤o : ∀ {m n o} → m ≡ o → n ≤ o → m - n ≤ o
+m≡o∧n≤o⇒m-n≤o {m} {n} {o} p1 p2 rewrite p1 | m≤n⇒∣n-m∣≡n∸m p2 = m∸n≤m o n
+
+simplifyLeftBound : {h x n : ℕ} {l : ℕ∞} → l <∞ [ x ] → Avl ℕ l [ n ] h → Avl ℕ ([ x ] ⊓∞ l) [ n ] h
+simplifyLeftBound {h} {x} {n} {l} p t rewrite n<∞[]⇒[]⊓∞n≡n p = t
+
+simplifyRightBound : {h x : ℕ} {u : ℕ∞} → [ x ] <∞ u → Avl ℕ [ x ] u h → Avl ℕ [ x ] ([ x ] ⊔∞ u) h
+simplifyRightBound {h} {x} {l} p t rewrite []<∞n⇒[]⊔∞n≡n p = t
+
+simplifybounds : {h x : ℕ} {l u : ℕ∞} → l <∞ [ x ] → [ x ] <∞ u → Avl ℕ l u h → Avl ℕ ([ x ] ⊓∞ l) ([ x ] ⊔∞ u) h
+simplifybounds {h} {x} {l} {u} p1 p2 t rewrite n<∞[]⇒[]⊓∞n≡n p1 | []<∞n⇒[]⊔∞n≡n p2 = t
+
+insert2 : {lower upper : ℕ∞} {h : ℕ} 
+        → (x : ℕ) 
+        → Avl ℕ lower upper h 
+        → (p1 : lower <∞ [ x ]) 
+        → (p2 : [ x ] <∞ upper) 
+        → Σ[ h' ∈ ℕ ] 
+            (Σ[ t ∈ Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h' ] 
+                ((h' ≡ h) 
+                ⊎ 
+                (Σ[ t ∈ Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h' ]
+                    ((Σ[ lower' ∈ ℕ∞ ] Σ[ upper' ∈ ℕ∞ ] Σ[ h'' ∈ ℕ ]
+                        Σ[ t' ∈ Avl ℕ lower' upper' h'' ] 
+                            (h' ≡ suc h × HeightIncTree3 t t'))
+                    ⊎ (h' ≡ suc h × (HeightIncTreeInit t ⊎ HeightIncTreeInit2 t))))))
+            × (0 < h')
+
+insert'2 : {lower upper : ℕ∞} {h : ℕ} 
+        → (x : ℕ) 
+        → Avl ℕ lower upper h 
+        → (p1 : lower <∞ [ x ]) 
+        → (p2 : [ x ] <∞ upper) 
+        → Σ[ h' ∈ ℕ ] 
+            (InsertTree lower upper h') × 
+                ((h' ≡ h) 
+                ⊎ 
+                (Σ[ t ∈ Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h' ]
+                    ((Σ[ lower' ∈ ℕ∞ ] Σ[ upper' ∈ ℕ∞ ] Σ[ h'' ∈ ℕ ]
+                        Σ[ t' ∈ Avl ℕ lower' upper' h'' ] 
+                            (h' ≡ suc h × HeightIncTree3 t t'))
+                    ⊎ (h' ≡ suc h × (HeightIncTreeInit t ⊎ HeightIncTreeInit2 t)))))
+
+insert'2 x (empty p) p1 p2 
+    = 1 , avl x (empty p1) (empty p2) z≤n , inj₂ (node x (simplifyLeftBound p1 (empty p1)) (simplifyRightBound p2 (empty p2)) z≤n 
+    , inj₂ (refl , inj₁ (basic-tree refl refl (simplifyLeftBound p1 (empty p1)) (simplifyRightBound p2 (empty p2)) z≤n refl)))
+insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 with x <? n | x >? n --? n | x >? n
+insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | no ¬p₁ rewrite sym (x</n,x>/n⇒x≡n ¬p ¬p₁) = (l₁ ⊔ r₁) + 1 , avl {l = l₁} {r = r₁} x l r p , inj₁ refl
+insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ with newT
+    where newT = insert2 x r ([]<[] p₁) p2 -- inserting in the right subtree
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₁ x₁) , snd₁ rewrite m≥n⇒m⊓n≡n (<⇒≤ p₁) | []<∞n⇒[]⊔∞n≡n p2 | sym x₁ 
+    = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p , inj₁ refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₁ x₁)) , snd₁ = {!   !}
+-- insert returns HeightIncTreeInit
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ with l₁ <? r₁ | l₁ >? r₁
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | no ¬p₁ | no ¬p₂ 
+    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert proofnew 
+    , inj₂ (node n (subst (λ x → Avl ℕ x [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) {! rightsubtreeAvl fst₃ p₁  !} proofnew 
+        , inj₂ ( heightchange , inj₂ (right-is-init l₁≡0 (subst (λ z → Avl ℕ z [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) {! rightsubtreeAvl fst₃ p₁  !} 
+            (basic-tree x₁ x₂ (rightsubtreeAvl left₁ p₁) right₁ p₂ p3) proofnew refl) ))
+    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
+          fst₁≡1 : fst₁ ≡ 1
+          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
+          proofnew : fst₁ - l₁ ≤ 1
+          proofnew = m≡o∧n≤o⇒m-n≤o fst₁≡1 (subst (λ x → x - l₁ ≤ 1) (m≡sucn∧m≡1⇒n≡0 fst₄ fst₁≡1) p)
+          rightsubtreeAvl : {x n fst₁ : ℕ} {upper : ℕ∞} → Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper) fst₁ → suc n ≤ x → Avl ℕ [ n ] ([ x ] ⊔∞ upper) fst₁
+          rightsubtreeAvl {x} {n} {fst₁} {upper} t p₁ = subst (λ w → Avl ℕ [ w ] ([ x ] ⊔∞ upper) fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) t
+          r₁≡0 : r₁ ≡ 0
+          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+          l₁≡0 : l₁ ≡ 0
+          l₁≡0 = subst (λ x → pred (suc x) ≡ pred 1) (sym (x</n,x>/n⇒x≡n ¬p₁ ¬p₂)) (subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄)))
+          heightchange : l₁ ⊔ fst₁ + 1 ≡ suc (l₁ ⊔ r₁ + 1)
+          heightchange rewrite fst₁≡1 | l₁≡0 | r₁≡0 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | _ | yes p₃ 
+    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert proofnew , inj₁ heightsame
+    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
+          fst₁≡1 : fst₁ ≡ 1
+          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
+          proofnew : fst₁ - l₁ ≤ 1
+          proofnew = m≡o∧n≤o⇒m-n≤o fst₁≡1 (subst (λ x → x - l₁ ≤ 1) (m≡sucn∧m≡1⇒n≡0 fst₄ fst₁≡1) p)
+          r₁≡0 : r₁ ≡ 0
+          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+          l₁≡1 : l₁ ≡ 1
+          l₁≡1 = ≤-antisym (subst (λ x → x - l₁ ≤ 1) r₁≡0 p) (subst (λ x → suc x ≤ l₁) r₁≡0 p₃)
+          heightsame : l₁ ⊔ fst₁ + 1 ≡ l₁ ⊔ r₁ + 1
+          heightsame rewrite fst₁≡1 | l₁≡1 | r₁≡0 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | yes p₃ | _ 
+    = contradiction p₃ (subst (λ x → ¬ suc l₁ ≤ x) (sym r₁≡0) (<⇒≱ 0<1+n))
+    where fst₁≡1 : fst₁ ≡ 1
+          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
+          r₁≡0 : r₁ ≡ 0
+          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ with fst₁ - l₁ ≤? 1 
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | no ¬p₁ = {! y  !}
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ with l₁ <? r₁ | l₁ >? r₁ 
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (.(subst (Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper)) p3 (node _ left₁ right₁ p₃)) , inj₂ (fst₄ , inj₂ (left-is-init p0 left₁ right₁ leftInit p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ = {!   !}
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (right-is-init {l = l₂} {r = r₂} p0 left₁ right₁ (basic-tree x₁ x₂ left₂ right₂ p₄ p4) p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ = {! p4  !} 
+    {-= l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert p₂ 
+        , inj₂ (node n (subst (λ x → Avl ℕ x [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) (rightsubtreeAvl fst₃ p₁) p₂ 
+            , inj₁ ([ n ] , ([ x ] ⊔∞ upper) , fst₁ , rightsubtreeAvl fst₃ p₁ , heightchange 
+                , right-subtree l₂≢/r₂ (rightsubtreeAvl left₁ p₁) right₁ p₃ p3 (simplifyLeftBound p1 l) (subst (λ x → x - l₁ ≤ 1) (sym p3) p₂) {!   !} {!   !} {!  refl !} ) )-} -- {! right-subtree ? ? ? ? ? ? ? ? ? ?  !})) (subst (λ x → l₁ ⊔ x + 1 ≡ l₁ ⊔ fst₁ + 1) (sym p3) refl)
+    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
+          rightsubtreeAvl : {x n fst₁ : ℕ} {upper : ℕ∞} → Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper) fst₁ → suc n ≤ x → Avl ℕ [ n ] ([ x ] ⊔∞ upper) fst₁
+          rightsubtreeAvl {x} {n} {fst₁} {upper} fst₂ p₁ = subst (λ w → Avl ℕ [ w ] ([ x ] ⊔∞ upper) fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) fst₂
+          l₁≡r₁ : l₁ ≡ r₁
+          l₁≡r₁ rewrite x</n,x>/n⇒x≡n ¬p₁ ¬p₂ = refl
+          heightchange : l₁ ⊔ fst₁ + 1 ≡ suc (l₁ ⊔ r₁ + 1)
+          heightchange rewrite l₁≡r₁ | fst₄ | ⊔-idem r₁ | m≤n⇒m⊔n≡n (n≤1+n r₁) = refl
+          r₂≡1 : r₂ ≡ 1
+          r₂≡1 rewrite sym p4 | x₁ | x₂ = refl
+          l₂≢/r₂ : l₂ ≢ r₂
+          l₂≢/r₂ rewrite p0 | r₂≡1 = λ ()
+          lower<∞n : lower <∞ [ n ]
+          lower<∞n = {!   !}
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ | _ | yes p₃ = {!   !}
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ | yes p₃ | _ = {!   !}
+insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | _ = {!   !}
+
+
+insert2 {lower} {upper} {h} x t p1 p2 with insert'2 x t p1 p2 
+... | .((l₁ ⊔ r₁) + 1) , avl {l = l₁} {r = r₁} n l r p , snd₁ = l₁ ⊔ r₁ + 1 , (simplifybounds p1 p2 (node n l r p) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (l₁ ⊔ r₁)) (s≤s z≤n)
+... | .(h₁ + 1 + 1) , llRot {h = h₁} n ln t1 t2 t3 , snd₁ = h₁ + 1 + 1 , (simplifybounds p1 p2 (leftRotation1 n ln t1 t2 t3) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1) , rrRot {h = h₁} n rn t1 t2 t3 , snd₁ = h₁ + 1 + 1 , (simplifybounds p1 p2 (rightRotation1 n rn t1 t2 t3) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1 + 1) , lrRotL {h = h₁} n ln lrn t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 + 1 , (simplifybounds p1 p2 (leftRightRotationL n ln lrn t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1 + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1 + 1) , lrRotR {h = h₁} n ln lrn t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 + 1 , (simplifybounds p1 p2 (leftRightRotationR n ln lrn t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1 + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1 + 1) , rlRotL {h = h₁} n rn rln t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 + 1 , (simplifybounds p1 p2 (rightLeftRotationL n rn rln t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1 + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1 + 1) , rlRotR {h = h₁} n rn rln t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 + 1 , (simplifybounds p1 p2 (rightLeftRotationR n rn rln t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1 + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1) , rlRotInit {h = h₁} n rn rln t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 , (simplifybounds p1 p2 (rightLeftRotationInit n rn rln t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
+... | .(h₁ + 1 + 1) , lrRotInit {h = h₁} n ln lrn t1 t2 t3 t4 , snd₁ = h₁ + 1 + 1 , (simplifybounds p1 p2 (leftRightRotationInit n ln lrn t1 t2 t3 t4) , snd₁) , subst (λ x → 1 ≤ x) (+-comm 1 (h₁ + 1)) (s≤s z≤n)
 
 
 
-                 
+
+                    
