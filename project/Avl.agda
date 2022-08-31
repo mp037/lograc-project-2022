@@ -326,7 +326,7 @@ insert' {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ 
           p11 : l₁ ≥ r₁
           p11 rewrite p3 = n≤1+n r₁
 insert' {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | rez2 | .(d1 ⊔ (rd1 ⊔ rd2 + _) + _) , node {l = d1} {.(rd1 ⊔ rd2 + _)} n₁ fst₂ (node {l = rd1} {r = rd2} n₂ fst₃ fst₄ x₂) x₁ , inj₂ y , snd₁ | no ¬p | no ¬p₁ | yes p₂ | yes p₃ | rez3 rewrite m≤n⇒m⊔n≡n (<⇒≤ p₁) | n<∞[]⇒[]⊓∞n≡n p1
-    = rd2 + 1 + 1 + 1 , (lrRotL n n₁ n₂ (subst (Avl ℕ lower [ n₁ ]) p10 fst₂) (subst (Avl ℕ [ n₁ ] [ n₂ ]) (subst (λ x → rd1 ≡ x) (+-comm 1 rd2) p5) fst₃) fst₄ (subst (Avl ℕ [ n ] upper) p9 r)) ,′ inj₁ (cong (λ x → x + 1) (subst (λ x → rd2 + 1 + 1 ≡ x) (sym (m≥n⇒m⊔n≡m p11)) (subst (λ x → rd2 + 1 + 1 ≡ x) (sym p3) (subst (λ x → rd2 + 1 + 1 ≡ x) (+-comm r₁ 1) (subst (λ x → rd2 + 1 + 1 ≡ x + 1) (sym p9) refl)))))
+    = rd2 + 1 + 1 + 1 , (lrRotL n n₁ n₂ (subst (Avl ℕ lower [ n₁ ]) p10 {! fst₂  !}) (subst (Avl ℕ [ n₁ ] [ n₂ ]) (subst (λ x → rd1 ≡ x) (+-comm 1 rd2) p5) fst₃) fst₄ (subst (Avl ℕ [ n ] upper) p9 r)) ,′ inj₁ (cong (λ x → x + 1) (subst (λ x → rd2 + 1 + 1 ≡ x) (sym (m≥n⇒m⊔n≡m p11)) (subst (λ x → rd2 + 1 + 1 ≡ x) (sym p3) (subst (λ x → rd2 + 1 + 1 ≡ x) (+-comm r₁ 1) (subst (λ x → rd2 + 1 + 1 ≡ x + 1) (sym p9) refl)))))
     where p3 : l₁ ≡ suc r₁
           p3 = ∣n-m∣≤1⇒∣suc[n]-m|>1⇒n≡suc[m] (subst (λ x → x ≤ 1) (∣-∣-comm r₁ l₁) p) (≰⇒> (subst (λ x → x ≤ 1 → ⊥) (∣-∣-comm r₁ (suc l₁)) (subst (λ x → r₁ - x ≤ 1 → ⊥) y ¬p)))
           p4 : rd1 ⊔ rd2 ≡ rd1
@@ -444,7 +444,7 @@ insert'2 : {lower upper : ℕ∞} {h : ℕ}
 
 insert'2 x (empty p) p1 p2 
     = 1 , avl x (empty p1) (empty p2) z≤n , inj₂ (node x (simplifyLeftBound p1 (empty p1)) (simplifyRightBound p2 (empty p2)) z≤n 
-    , inj₂ (refl , inj₁ (basic-tree refl refl (simplifyLeftBound p1 (empty p1)) (simplifyRightBound p2 (empty p2)) z≤n refl)))
+    , inj₂ (refl , inj₁ (basic-tree (simplifyLeftBound p1 (empty p1)) (simplifyRightBound p2 (empty p2)))))
 insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 with x <? n | x >? n --? n | x >? n
 insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | no ¬p₁ rewrite sym (x</n,x>/n⇒x≡n ¬p ¬p₁) = (l₁ ⊔ r₁) + 1 , avl {l = l₁} {r = r₁} x l r p , inj₁ refl
 insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ with newT
@@ -453,71 +453,125 @@ insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p |
     = (l₁ ⊔ fst₁) + 1 , avl n l fst₂ p , inj₁ refl
 insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₁ x₁)) , snd₁ = {!   !}
 -- insert returns HeightIncTreeInit
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ with l₁ <? r₁ | l₁ >? r₁
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | no ¬p₁ | no ¬p₂ 
-    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert proofnew 
-    , inj₂ (node n (subst (λ x → Avl ℕ x [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) {! rightsubtreeAvl fst₃ p₁  !} proofnew 
-        , inj₂ ( heightchange , inj₂ (right-is-init l₁≡0 (subst (λ z → Avl ℕ z [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) {! rightsubtreeAvl fst₃ p₁  !} 
-            (basic-tree x₁ x₂ (rightsubtreeAvl left₁ p₁) right₁ p₂ p3) proofnew refl) ))
-    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
-          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
-          fst₁≡1 : fst₁ ≡ 1
-          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
-          proofnew : fst₁ - l₁ ≤ 1
-          proofnew = m≡o∧n≤o⇒m-n≤o fst₁≡1 (subst (λ x → x - l₁ ≤ 1) (m≡sucn∧m≡1⇒n≡0 fst₄ fst₁≡1) p)
-          rightsubtreeAvl : {x n fst₁ : ℕ} {upper : ℕ∞} → Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper) fst₁ → suc n ≤ x → Avl ℕ [ n ] ([ x ] ⊔∞ upper) fst₁
-          rightsubtreeAvl {x} {n} {fst₁} {upper} t p₁ = subst (λ w → Avl ℕ [ w ] ([ x ] ⊔∞ upper) fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) t
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ x₁))) , snd₁ with l₁ <? r₁ | l₁ >? r₁
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(0 ⊔ 0 + 1) , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree left₁ right₁)))) , snd₁ | no ¬p₁ | no ¬p₂ 
+    = l₁ ⊔ 1 + 1 , avl n l rightsubtreeInsert proofnew 
+        , inj₂ (node n transforml transformfst₃ l₁⊔1-0≤1
+            , inj₂ (heightchange , inj₂ (right-is-init transforml transformfst₃ {! basic-tree ? ?  !} l₁⊔1-0≤1 {!   !}))) --(basic-tree x₁ x₂ (rightsubtreeAvl left₁ p₁) right₁ p₂ p3) proofnew refl)
+    where rightsubtreeInsert : Avl ℕ [ n ] upper 1
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper 1) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w 1) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
           r₁≡0 : r₁ ≡ 0
-          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+          r₁≡0 = sym (cong pred fst₄)
           l₁≡0 : l₁ ≡ 0
-          l₁≡0 = subst (λ x → pred (suc x) ≡ pred 1) (sym (x</n,x>/n⇒x≡n ¬p₁ ¬p₂)) (subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄)))
-          heightchange : l₁ ⊔ fst₁ + 1 ≡ suc (l₁ ⊔ r₁ + 1)
-          heightchange rewrite fst₁≡1 | l₁≡0 | r₁≡0 = refl
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | _ | yes p₃ 
-    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert proofnew , inj₁ heightsame
-    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
-          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
-          fst₁≡1 : fst₁ ≡ 1
-          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
-          proofnew : fst₁ - l₁ ≤ 1
-          proofnew = m≡o∧n≤o⇒m-n≤o fst₁≡1 (subst (λ x → x - l₁ ≤ 1) (m≡sucn∧m≡1⇒n≡0 fst₄ fst₁≡1) p)
+          l₁≡0 = subst (λ x → l₁ ≡ x) (r₁≡0) (x</n,x>/n⇒x≡n ¬p₁ ¬p₂)
+          proofnew : 1 - l₁ ≤ 1
+          proofnew rewrite l₁≡0 = s≤s z≤n
+          heightchange : l₁ ⊔ 1 + 1 ≡ suc (l₁ ⊔ r₁ + 1)
+          heightchange rewrite l₁≡0 | r₁≡0 = refl
+          l₁⊔1≡1 : l₁ ⊔ 1 ≡ 1
+          l₁⊔1≡1 rewrite l₁≡0 = refl
+          l₁⊔1-0≤1 : ((l₁ ⊔ 1) - 0) ≤ 1
+          l₁⊔1-0≤1 rewrite l₁≡0 = s≤s z≤n
+          transforml : Avl ℕ ([ x ] ⊓∞ lower) [ n ] 0
+          transforml = subst (λ x → Avl ℕ x [ n ] 0) (sym (n<∞[]⇒[]⊓∞n≡n p1)) (subst (Avl ℕ lower [ n ]) (l₁≡0) l)
+          transformfst₃ : Avl ℕ [ n ] ([ x ] ⊔∞ upper) (l₁ ⊔ 1)
+          transformfst₃ = subst (Avl ℕ [ n ] ([ x ] ⊔∞ upper)) (sym l₁⊔1≡1) (subst (λ w → Avl ℕ [ w ] ([ x ] ⊔∞ upper) 1) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) fst₃)
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(0 ⊔ 0 + 1) , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree left₁ right₁)))) , snd₁ | _ | yes p₃ 
+    = l₁ ⊔ 1 + 1 , avl n l rightsubtreeInsert proofnew , inj₁ heightsame
+    where rightsubtreeInsert : Avl ℕ [ n ] upper 1
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper 1) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w 1) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
           r₁≡0 : r₁ ≡ 0
-          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+          r₁≡0 = sym (cong pred fst₄)
           l₁≡1 : l₁ ≡ 1
           l₁≡1 = ≤-antisym (subst (λ x → x - l₁ ≤ 1) r₁≡0 p) (subst (λ x → suc x ≤ l₁) r₁≡0 p₃)
-          heightsame : l₁ ⊔ fst₁ + 1 ≡ l₁ ⊔ r₁ + 1
-          heightsame rewrite fst₁≡1 | l₁≡1 | r₁≡0 = refl
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree x₁ x₂ left₁ right₁ p₂ p3)))) , snd₁ | yes p₃ | _ 
+          proofnew : 1 - l₁ ≤ 1
+          proofnew rewrite l₁≡1 = z≤n
+          heightsame : l₁ ⊔ 1 + 1 ≡ l₁ ⊔ r₁ + 1
+          heightsame rewrite l₁≡1 | r₁≡0 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(0 ⊔ 0 + 1) , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₁ (basic-tree left₁ right₁)))) , snd₁ | yes p₃ | _ 
     = contradiction p₃ (subst (λ x → ¬ suc l₁ ≤ x) (sym r₁≡0) (<⇒≱ 0<1+n))
-    where fst₁≡1 : fst₁ ≡ 1
-          fst₁≡1 rewrite sym p3 | x₁ | x₂ = refl
-          r₁≡0 : r₁ ≡ 0
-          r₁≡0 = subst (λ x → pred (suc r₁) ≡ pred x) fst₁≡1 (sym (cong pred fst₄))
+    where r₁≡0 : r₁ ≡ 0
+          r₁≡0 = sym (cong pred fst₄)
 insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ with fst₁ - l₁ ≤? 1 
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | no ¬p₁ = {! y  !}
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(0 ⊔ 0 + 1 ⊔ 0 + 1) , (fst₂ , inj₂ ((node n₁ (node n₂ left₂ right₂ z≤n) right₁ p₂) , inj₂ (fst₄ , inj₂ (left-is-init .(node _ left₂ right₂ z≤n) right₁ (basic-tree left₂ right₂) p₂ p3)))) , snd₁ | no ¬p₁ 
+    = l₁ + 1 + 1 , rlRotInit n n₁ n₂ l transformleft₂ (subst (Avl ℕ [ n₂ ] [ n₁ ]) (sym l₁≡0) right₂) transformright₁ , inj₁ heightsame
+    where r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡0 : l₁ ≡ 0
+          l₁≡0 = sym (∣suc[n]-m∣≤1⇒∣suc[suc[n]]-m|>1⇒n≡m (subst (λ x → x - l₁ ≤ 1) r₁≡1 p) (≰⇒> ¬p₁))
+          transformleft₂ : Avl ℕ [ n ] [ n₂ ] l₁
+          transformleft₂ rewrite l₁≡0 = subst (λ z → Avl ℕ [ z ] [ n₂ ] 0) (m≥n⇒m⊓n≡n (≮⇒≥ ¬p)) left₂
+          transformright₁ : Avl ℕ [ n₁ ] upper l₁
+          transformright₁ rewrite l₁≡0 = subst (λ z → Avl ℕ [ n₁ ] z 0) (m≤∞n⇒m⊔∞n≡n (<∞⇒≤∞ p2)) right₁
+          heightsame : l₁ + 1 + 1 ≡ l₁ ⊔ r₁ + 1
+          heightsame rewrite l₁≡0 | r₁≡1 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | .(0 ⊔ (0 ⊔ 0 + 1) + 1) , (fst₂ , inj₂ (.(node _ left₁ (node _ left₂ right₁ z≤n) p₂) , inj₂ (fst₄ , inj₂ (right-is-init left₁ .(node _ left₂ right₁ z≤n) (basic-tree left₂ right₁) p₂ p3)))) , snd₁ | no ¬p₁ 
+    = l₁ + 1 + 1 , rrRot n {!   !} l {! left₁  !} {!   !} , inj₁ heightsame
+    where r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡0 : l₁ ≡ 0
+          l₁≡0 = sym (∣suc[n]-m∣≤1⇒∣suc[suc[n]]-m|>1⇒n≡m (subst (λ x → x - l₁ ≤ 1) r₁≡1 p) (≰⇒> ¬p₁))
+          transformleft₁ : {n₁ : ℕ} → Avl ℕ [ n ] [ n₁ ] l₁
+          transformleft₁ rewrite l₁≡0 = {! subst (λ z → Avl ℕ [ z ] [ n₁ ] 0) (m≥n⇒m⊓n≡n (≮⇒≥ ¬p)) left₁  !}
+          heightsame : l₁ + 1 + 1 ≡ l₁ ⊔ r₁ + 1
+          heightsame rewrite l₁≡0 | r₁≡1 = refl
 insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ with l₁ <? r₁ | l₁ >? r₁ 
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (.(subst (Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper)) p3 (node _ left₁ right₁ p₃)) , inj₂ (fst₄ , inj₂ (left-is-init p0 left₁ right₁ leftInit p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ = {!   !}
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (right-is-init {l = l₂} {r = r₂} p0 left₁ right₁ (basic-tree x₁ x₂ left₂ right₂ p₄ p4) p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ = {! p4  !} 
-    {-= l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert p₂ 
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (left-is-init left₁ right₁ (basic-tree left₂ right₂) p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂ 
+    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert p₂ 
         , inj₂ (node n (subst (λ x → Avl ℕ x [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) (rightsubtreeAvl fst₃ p₁) p₂ 
             , inj₁ ([ n ] , ([ x ] ⊔∞ upper) , fst₁ , rightsubtreeAvl fst₃ p₁ , heightchange 
-                , right-subtree l₂≢/r₂ (rightsubtreeAvl left₁ p₁) right₁ p₃ p3 (simplifyLeftBound p1 l) (subst (λ x → x - l₁ ≤ 1) (sym p3) p₂) {!   !} {!   !} {!  refl !} ) )-} -- {! right-subtree ? ? ? ? ? ? ? ? ? ?  !})) (subst (λ x → l₁ ⊔ x + 1 ≡ l₁ ⊔ fst₁ + 1) (sym p3) refl)
+                , {!  right-subtree ? ? ? ? ? ? ? ? !}))
     where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
           rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
-          rightsubtreeAvl : {x n fst₁ : ℕ} {upper : ℕ∞} → Avl ℕ [ x ⊓ n ] ([ x ] ⊔∞ upper) fst₁ → suc n ≤ x → Avl ℕ [ n ] ([ x ] ⊔∞ upper) fst₁
-          rightsubtreeAvl {x} {n} {fst₁} {upper} fst₂ p₁ = subst (λ w → Avl ℕ [ w ] ([ x ] ⊔∞ upper) fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) fst₂
+          rightsubtreeAvl : {x n fst₁ : ℕ} {y : ℕ∞} → Avl ℕ [ x ⊓ n ] y fst₁ → suc n ≤ x → Avl ℕ [ n ] y fst₁
+          rightsubtreeAvl {x} {n} {fst₁} {y} fst₂ p₁ = subst (λ w → Avl ℕ [ w ] y fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) fst₂
           l₁≡r₁ : l₁ ≡ r₁
           l₁≡r₁ rewrite x</n,x>/n⇒x≡n ¬p₁ ¬p₂ = refl
-          heightchange : l₁ ⊔ fst₁ + 1 ≡ suc (l₁ ⊔ r₁ + 1)
-          heightchange rewrite l₁≡r₁ | fst₄ | ⊔-idem r₁ | m≤n⇒m⊔n≡n (n≤1+n r₁) = refl
-          r₂≡1 : r₂ ≡ 1
-          r₂≡1 rewrite sym p4 | x₁ | x₂ = refl
-          l₂≢/r₂ : l₂ ≢ r₂
-          l₂≢/r₂ rewrite p0 | r₂≡1 = λ ()
-          lower<∞n : lower <∞ [ n ]
-          lower<∞n = {!   !}
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ | _ | yes p₃ = {!   !}
-insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ | yes p₃ | _ = {!   !}
+          r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡1 : l₁ ≡ 1
+          l₁≡1 rewrite sym r₁≡1 | l₁≡r₁ = refl
+          heightchange : l₁ ⊔ 2 + 1 ≡ suc (l₁ ⊔ r₁ + 1)
+          heightchange rewrite r₁≡1 | l₁≡1 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (right-is-init left₁ right₁ (basic-tree left₂ right₂) p₃ p3)))) , snd₁ | yes p₂ | no ¬p₁ | no ¬p₂
+    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert p₂ 
+        , inj₂ (node n (subst (λ x → Avl ℕ x [ n ] l₁) (sym (n<∞[]⇒[]⊓∞n≡n p1)) l) (rightsubtreeAvl fst₃ p₁) p₂ 
+            , inj₁ ([ n ] , ([ x ] ⊔∞ upper) , fst₁ , rightsubtreeAvl fst₃ p₁ , heightchange 
+                , {! right-subtree ? ? ? ? ? ? ? ?  !})) --right-subtree l₂≢/r₂ (rightsubtreeAvl left₁ p₁) right₁ p₃ p3 (simplifyLeftBound p1 l) (subst (λ x → x - l₁ ≤ 1) (sym p3) p₂) {!   !} {!   !} {!  refl !}
+    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
+          rightsubtreeAvl : {x n fst₁ : ℕ} {y : ℕ∞} → Avl ℕ [ x ⊓ n ] y fst₁ → suc n ≤ x → Avl ℕ [ n ] y fst₁
+          rightsubtreeAvl {x} {n} {fst₁} {y} fst₂ p₁ = subst (λ w → Avl ℕ [ w ] y fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) fst₂
+          l₁≡r₁ : l₁ ≡ r₁
+          l₁≡r₁ rewrite x</n,x>/n⇒x≡n ¬p₁ ¬p₂ = refl
+          r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡1 : l₁ ≡ 1
+          l₁≡1 rewrite sym r₁≡1 | l₁≡r₁ = refl
+          heightchange : l₁ ⊔ 2 + 1 ≡ suc (l₁ ⊔ r₁ + 1)
+          heightchange rewrite r₁≡1 | l₁≡1 = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ y))) , snd₁ | yes p₂ | _ | yes p₃ 
+    = l₁ ⊔ fst₁ + 1 , avl n l rightsubtreeInsert p₂ , inj₁ heightsame
+    where rightsubtreeInsert : Avl ℕ [ n ] upper fst₁
+          rightsubtreeInsert = subst (λ x → Avl ℕ [ x ] upper fst₁) (m≥n⇒m⊓n≡n (<⇒≤ p₁)) (subst (λ w → Avl ℕ [ x ⊓ n ] w fst₁) ([]<∞n⇒[]⊔∞n≡n p2) fst₃)
+          heightsame : l₁ ⊔ fst₁ + 1 ≡ l₁ ⊔ r₁ + 1
+          heightsame rewrite fst₄ | m≥n⇒m⊔n≡m p₃ | m≥n⇒m⊔n≡m (<⇒≤ p₃) = refl
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (left-is-init left₁ right₁ (basic-tree left₂ right₂) p₄ p3)))) , snd₁ | yes p₂ | yes p₃ | _ 
+    = contradiction p₂ cont
+    where r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡0 : l₁ ≡ 0
+          l₁≡0 = n<1⇒n≡0 (subst (λ x → suc l₁ ≤ x) (r₁≡1) p₃)
+          cont : ¬ (2 - l₁) ≤ 1
+          cont rewrite l₁≡0 = <⇒≱ (s≤s (s≤s z≤n))
+insert'2 {lower} {upper} x (node {l = l₁} {r = r₁} n l r p) p1 p2 | no ¬p | yes p₁ | fst₁ , (fst₂ , inj₂ (fst₃ , inj₂ (fst₄ , inj₂ (right-is-init left₁ right₁ (basic-tree left₂ right₂) p₄ p3)))) , snd₁ | yes p₂ | yes p₃ | _ 
+    = contradiction p₂ cont
+    where r₁≡1 : r₁ ≡ 1
+          r₁≡1 = sym (cong pred fst₄)
+          l₁≡0 : l₁ ≡ 0
+          l₁≡0 = n<1⇒n≡0 (subst (λ x → suc l₁ ≤ x) (r₁≡1) p₃)
+          cont : ¬ (2 - l₁) ≤ 1
+          cont rewrite l₁≡0 = <⇒≱ (s≤s (s≤s z≤n))
 insert'2 x (node {l = l₁} {r = r₁} n l r p) p1 p2 | yes p₁ | _ = {!   !}
 
 

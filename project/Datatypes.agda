@@ -15,6 +15,7 @@ open import Data.Empty
 open import Relation.Binary.Definitions
 open import Agda.Builtin.Sigma
 open import Data.Product
+open import Relation.Binary.Core
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong; subst; resp; _≢_)
@@ -31,10 +32,10 @@ data _<∞_ : ℕ∞ → ℕ∞ → Set where
   []<[] : {n m : ℕ}   → n < m → [ n ] <∞ [ m ]
   n<+∞  : {n   : ℕ∞}  →           n   <∞  +∞
 
-data _≡∞_ : ℕ∞ → ℕ∞ → Set where
-  -∞≡-∞ : -∞ ≡∞ -∞
-  []≡[] : {n m : ℕ} → n ≡ m → [ n ] ≡∞ [ m ]
-  +∞≡+∞ : +∞ ≡∞ +∞
+data _≤∞_ : ℕ∞ → ℕ∞ → Set where
+  -∞≤n : {n : ℕ∞} → -∞ ≤∞ n
+  []≤[] : {n m : ℕ} → n ≤ m → [ n ] ≤∞ [ m ]
+  n≤+∞ : {n : ℕ∞} → n ≤∞ +∞
 
 
 data Avl (A : Set) (lower upper : ℕ∞) : ℕ → Set where       --the last element is the height of the tree
@@ -161,6 +162,18 @@ _⊔∞_ : (m n : ℕ∞) → ℕ∞
 [ x ] ⊔∞ +∞ = +∞
 +∞ ⊔∞ n = +∞
 
+m≤∞n⇒m⊔∞n≡n : ∀ {m n} → m ≤∞ n → m ⊔∞ n ≡ n
+m≤∞n⇒m⊔∞n≡n { -∞} {n} p = refl
+m≤∞n⇒m⊔∞n≡n {[ x ]} {[ x₁ ]} ([]≤[] x₂) rewrite m≤n⇒m⊔n≡n x₂ = refl
+m≤∞n⇒m⊔∞n≡n {[ x ]} {+∞} p = refl
+m≤∞n⇒m⊔∞n≡n {+∞} {+∞} p = refl
+
+<∞⇒≤∞ : _<∞_ ⇒ _≤∞_
+<∞⇒≤∞ -∞<n = -∞≤n
+<∞⇒≤∞ ([]<[] x) = []≤[] (<⇒≤ x)
+<∞⇒≤∞ n<+∞ = n≤+∞
+
+{-
 data HeightIncTree {h : ℕ} {lower upper : ℕ∞} : Avl ℕ lower upper h → Set where
   tree-is-node : {l r n : ℕ}
               → l ≢ r 
@@ -179,18 +192,6 @@ data HeightIncTree2 {h : ℕ} {lower upper : ℕ∞} : InsertTree lower upper h 
                 → (p2 : l ⊔ r + 1 ≡ h)
                 → HeightIncTree2 (subst (InsertTree lower upper) p2 (avl n left right p))
 
-{-
-data HeightIncTreeInit {h x : ℕ} {lower upper : ℕ∞} : Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper) h → Set where
-  basic-tree : {l r n : ℕ}
-              → l ≡ 0
-              → r ≡ 0
-              → (left : Avl ℕ ([ x ] ⊓∞ lower) [ n ] l) 
-              → (right : Avl ℕ [ n ] ([ x ] ⊔∞ upper) r) 
-              → (p : (r - l) ≤ 1) 
-              → (p2 : l ⊔ r + 1 ≡ h)
-              → HeightIncTreeInit (subst (Avl ℕ ([ x ] ⊓∞ lower) ([ x ] ⊔∞ upper)) p2 (node n left right p)) --(subst (Avl ℕ lower upper) p2 (node n left right p))
--}
-
 data HeightIncTreeInit {h : ℕ} {lower upper : ℕ∞} : Avl ℕ lower upper h → Set where
   basic-tree : {l r n : ℕ}
               → l ≡ 0
@@ -200,26 +201,55 @@ data HeightIncTreeInit {h : ℕ} {lower upper : ℕ∞} : Avl ℕ lower upper h 
               → (p : (r - l) ≤ 1) 
               → (p2 : l ⊔ r + 1 ≡ h)
               → HeightIncTreeInit (subst (Avl ℕ lower upper) p2 (node n left right p))
+-}
 
-data HeightIncTreeInit2 {h : ℕ} {lower upper : ℕ∞} : Avl ℕ lower upper h → Set where
-  left-is-init : {l r n : ℕ}
-                → (p0 : r ≡ 0)
+
+data HeightIncTreeInit : {h : ℕ} {lower upper : ℕ∞} → Avl ℕ lower upper h → Set where
+  basic-tree : {n : ℕ} {h : ℕ} {lower upper : ℕ∞}
+              → (left : Avl ℕ lower [ n ] 0) 
+              → (right : Avl ℕ [ n ] upper 0) 
+              → HeightIncTreeInit (node n left right z≤n) 
+
+data HeightIncTreeInit2 : {h : ℕ} {lower upper : ℕ∞} → Avl ℕ lower upper h → Set where
+  left-is-init : {l n : ℕ} {h : ℕ} {lower upper : ℕ∞}
                 → (left : Avl ℕ lower [ n ] l)
-                → (right : Avl ℕ [ n ] upper r)
+                → (right : Avl ℕ [ n ] upper 0)
                 → (leftInit : HeightIncTreeInit left)
-                → (p : (r - l) ≤ 1) 
-                → (p2 : l ⊔ r + 1 ≡ h)
-                → HeightIncTreeInit2 (subst (Avl ℕ lower upper) p2 (node n left right p))
-  right-is-init : {l r n : ℕ}
-                → (p0 : l ≡ 0)
-                → (left : Avl ℕ lower [ n ] l)
+                → (p : (0 - l) ≤ 1) 
+                → (p2 : l ⊔ 0 + 1 ≡ h)
+                → HeightIncTreeInit2 (node n left right p)
+  right-is-init : {r n : ℕ} {h : ℕ} {lower upper : ℕ∞}
+                → (left : Avl ℕ lower [ n ] 0)
                 → (right : Avl ℕ [ n ] upper r)
                 → (rightInit : HeightIncTreeInit right)
-                → (p : (r - l) ≤ 1) 
-                → (p2 : l ⊔ r + 1 ≡ h)
-                → HeightIncTreeInit2 (subst (Avl ℕ lower upper) p2 (node n left right p))
+                → (p : (r - 0) ≤ 1) 
+                → (p2 : 0 ⊔ r + 1 ≡ h)
+                → HeightIncTreeInit2 (node n left right p)
 
-data HeightIncTree3 {h h' : ℕ} {lower upper lower' upper' : ℕ∞} : Avl ℕ lower upper h → Avl ℕ lower' upper' h' → Set where
+
+data HeightIncTree3 : {h h' : ℕ} {lower upper lower' upper' : ℕ∞} → Avl ℕ lower upper h → Avl ℕ lower' upper' h' → Set where
+  left-subtree : {r l' r' n n' : ℕ} {h h' : ℕ} {lower upper : ℕ∞}
+                → l' ≢ r'
+                → (left' : Avl ℕ lower [ n' ] l') 
+                → (right' : Avl ℕ [ n' ] [ n ] r')
+                → (p' : (r' - l') ≤ 1)
+                → (p2' : l' ⊔ r' + 1 ≡ h')
+                → (right : Avl ℕ [ n ] upper r)
+                → (p : r - (l' ⊔ r' + 1) ≤ 1)
+                → (p2 : l' ⊔ r' + 1 ⊔ r + 1 ≡ h)
+                → HeightIncTree3 (node n (node n' left' right' p') right p) (node n' left' right' p')
+  right-subtree : {l l' r' n n' : ℕ} {h h' : ℕ} {lower upper : ℕ∞}
+                  → l' ≢ r'
+                  → (left' : Avl ℕ [ n ] [ n' ] l')
+                  → (right' : Avl ℕ [ n' ] upper r')
+                  → (p' : (r' - l') ≤ 1)
+                  → (p2' : l' ⊔ r' + 1 ≡ h')
+                  → (left : Avl ℕ lower [ n ] l)
+                  → (p : (l' ⊔ r' + 1) - l ≤ 1)
+                  → (p2 : l ⊔ (l' ⊔ r' + 1) + 1 ≡ h)
+                  → HeightIncTree3 (node n left (node n' left' right' p') p) (node n' left' right' p')
+
+{-data HeightIncTree3 {h h' : ℕ} {lower upper lower' upper' : ℕ∞} : Avl ℕ lower upper h → Avl ℕ lower' upper' h' → Set where
   left-subtree : {l r l' r' n n' : ℕ} --remove l?
                 → l' ≢ r'
                 → (left' : Avl ℕ lower' [ n' ] l') 
@@ -249,7 +279,7 @@ data HeightIncTree3 {h h' : ℕ} {lower upper lower' upper' : ℕ∞} : Avl ℕ 
                   → HeightIncTree3 (subst (λ x → Avl ℕ lower x h) p4 
                                     (subst (Avl ℕ lower upper') p2 
                                       (node n left (node n' (subst (λ x → Avl ℕ x [ n' ] l') p3 left') right' p') p))) 
-                                  (subst (Avl ℕ lower' upper') p2' (node n' left' right' p'))
+                                  (subst (Avl ℕ lower' upper') p2' (node n' left' right' p'))-}
 
 
- 
+  
